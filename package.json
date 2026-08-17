@@ -1,0 +1,17 @@
+{
+  "name": "autonomous-campaigner-server",
+  "version": "1.0.0",
+  "description": "Autonomous Meta Ads campaigner — pulls performance, analyzes, and executes actions within guardrails. Railway-ready.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "node-cron": "^3.0.3"
+  }
+}
