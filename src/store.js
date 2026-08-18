@@ -8,10 +8,23 @@
 export const store = {
   recommendations: [],   // latest analysis output
   audit: [],             // every executed / attempted action
+  creatives: [],         // creative bank entries
   killed: false,         // runtime kill switch (in addition to env)
   lastRun: null,
   lastError: null,
 };
+
+let _cid = 1;
+export function addCreative(c) {
+  const row = { id: "cr" + _cid++, createdAt: new Date().toISOString(), ...c };
+  store.creatives.unshift(row);
+  return row;
+}
+export function removeCreative(id) {
+  const i = store.creatives.findIndex((c) => c.id === id);
+  if (i >= 0) store.creatives.splice(i, 1);
+  return i >= 0;
+}
 
 export function setRecommendations(recs) {
   store.recommendations = recs;

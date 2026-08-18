@@ -10,7 +10,23 @@ import { config } from "./config.js";
 import { analyzeAccount } from "./engine.js";
 import { checkAction } from "./guardrails.js";
 import { execute } from "./executor.js";
-import { store, setRecommendations, audit } from "./store.js";
+import { store, setRecommendations, audit, addCreative, removeCreative } from "./store.js";
+
+// fields the dashboard is allowed to read / change at runtime
+const TUNABLE = [
+  "dryRun", "autoPause", "autoBudget", "windowDays",
+  "budgetCapDaily", "maxBudgetChangePct", "minLeadsBeforeAction", "minImpressionsForCreative",
+  "ctrLow", "freqHigh", "cplExpensiveMult", "cplWinnerMult", "budgetDownFactor", "budgetUpFactor",
+];
+function readConfig() { const o = {}; for (const k of TUNABLE) o[k] = config[k]; return o; }
+function writeConfig(patch) {
+  for (const k of TUNABLE) {
+    if (patch[k] === undefined) continue;
+    if (typeof config[k] === "boolean") config[k] = !!patch[k];
+    else { const n = parseFloat(patch[k]); if (Number.isFinite(n)) config[k] = n; }
+  }
+  return readConfig();
+}
 
 // ---- one full cycle: analyze all accounts → act ----
 export async function runCycle() {
@@ -80,6 +96,23 @@ api.post("/actions/:id/approve", async (req, res) => {
 api.post("/run", async (_req, res) => { await runCycle(); res.json({ ok: true, recommendations: store.recommendations.length }); });
 api.post("/kill", (_req, res) => { store.killed = true; res.json({ killed: true }); });
 api.post("/resume", (_req, res) => { store.killed = false; res.json({ killed: false }); });
+
+// runtime rules/autonomy config
+api.get("/config", (_req, res) => res.json(readConfig()));
+api.put("/config", (req, res) => res.json(writeConfig(req.body || {})));
+
+// creative bank
+api.get("/creatives", (_req, res) => res.json(store.creatives));
+api.post("/creatives", (req, res) => {
+  const b = req.body || {};
+  if (!b.name) return res.status(400).json({ error: "name required" });
+  res.json(addCreative({
+    name: String(b.name).slice(0, 120), angle: b.angle || "", format: b.format || "",
+    audience: b.audience || "", url: b.url || "", note: b.note || "", status: b.status || "ready",
+  }));
+});
+api.delete("/creatives/:id", (req, res) => res.json({ removed: removeCreative(req.params.id) }));
+
 app.use("/api", api);
 
 app.listen(config.port, () => {

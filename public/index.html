@@ -3,1455 +3,555 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ads Command — דשבורד סוכנים</title>
+<title>Ads Command — Autonomous Campaigner</title>
 <style>
   :root{
-    color-scheme: dark;
-    --bg:#000000; --bg-2:#09090b;
-    --card:#18181b; --card-2:#1f1f23; --card-hover:#232327;
-    --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.14);
-    --text:#ffffff; --text-2:#a1a1aa; --muted:#71717a;
-    --primary:#006FEE; --primary-600:#0057c7; --primary-soft:rgba(0,111,238,0.16);
-    --success:#17c964; --success-soft:rgba(23,201,100,0.15);
-    --danger:#f31260; --danger-soft:rgba(243,18,96,0.15);
-    --warning:#f5a524; --warning-soft:rgba(245,165,36,0.15);
-    --seq-1:#3b9bff; --seq-2:#006FEE;
-    --shadow:0 8px 30px rgba(0,0,0,0.5);
-    --r-card:16px; --r-btn:12px;
+    color-scheme:dark;
+    --bg:#0a0b0e; --panel:#101216; --panel-2:#15181d; --elev:#1b1f26; --hover:#1f242c;
+    --border:rgba(255,255,255,.06); --border-2:rgba(255,255,255,.11);
+    --text:#e7e9ec; --text-2:#98a0aa; --muted:#626a74;
+    --accent:#6366f1; --accent-2:#818cf8; --accent-soft:rgba(99,102,241,.14);
+    --good:#22c55e; --good-soft:rgba(34,197,94,.13);
+    --warn:#f59e0b; --warn-soft:rgba(245,158,11,.13);
+    --danger:#ef4444; --danger-soft:rgba(239,68,68,.13);
+    --info:#3b82f6;
+    --r:12px;
   }
-  *{box-sizing:border-box; margin:0; padding:0;}
+  *{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;}
-  body{
-    font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
-    background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased;
-  }
-  button{font:inherit; cursor:pointer; border:none; background:none; color:inherit;}
-  input,select{font:inherit;}
-  ::-webkit-scrollbar{width:10px; height:10px;}
-  ::-webkit-scrollbar-thumb{background:#2a2a2e; border-radius:6px;}
-  ::-webkit-scrollbar-thumb:hover{background:#3a3a3e;}
+  body{font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;font-size:14px;}
+  button{font:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+  input,select,textarea{font:inherit;}
+  a{color:var(--accent-2);text-decoration:none;}
+  svg{display:block;}
+  ::-webkit-scrollbar{width:9px;height:9px;} ::-webkit-scrollbar-thumb{background:#262b33;border-radius:6px;}
 
-  /* ---------------- buttons ---------------- */
-  .btn{display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:var(--r-btn);
-    font-size:13.5px; font-weight:600; background:var(--card-2); color:var(--text); border:1px solid var(--border);
-    transition:.15s;}
-  .btn:hover{background:var(--card-hover); border-color:var(--border-strong);}
-  .btn.primary{background:var(--primary); border-color:transparent; color:#fff;}
-  .btn.primary:hover{background:var(--primary-600);}
-  .btn.ghost{background:transparent; border-color:transparent; color:var(--text-2);}
-  .btn.ghost:hover{background:var(--card-2); color:var(--text);}
-  .btn.sm{padding:6px 12px; font-size:12.5px;}
-  .btn.danger{background:var(--danger-soft); color:#ff6b96; border-color:transparent;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:9px;font-size:13px;font-weight:600;background:var(--elev);color:var(--text);border:1px solid var(--border-2);transition:.13s;white-space:nowrap;}
+  .btn:hover{background:var(--hover);}
+  .btn.primary{background:var(--accent);border-color:transparent;color:#fff;}
+  .btn.primary:hover{background:var(--accent-2);}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--text-2);}
+  .btn.ghost:hover{background:var(--elev);color:var(--text);}
+  .btn.sm{padding:6px 11px;font-size:12px;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
 
-  .pill{display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; padding:3px 9px; border-radius:999px;}
-  .pill.up{background:var(--success-soft); color:#3ee089;}
-  .pill.down{background:var(--danger-soft); color:#ff6b96;}
-  .pill.warn{background:var(--warning-soft); color:#ffca66;}
-  .pill.info{background:var(--primary-soft); color:#5aa9ff;}
-  .pill.neutral{background:rgba(255,255,255,0.06); color:var(--text-2);}
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:6px;}
+  .chip .dot{width:6px;height:6px;border-radius:50%;}
+  .c-crit{background:var(--danger-soft);color:#fca5a5;} .c-crit .dot{background:var(--danger);}
+  .c-warn{background:var(--warn-soft);color:#fcd34d;} .c-warn .dot{background:var(--warn);}
+  .c-good{background:var(--good-soft);color:#86efac;} .c-good .dot{background:var(--good);}
+  .c-info{background:var(--accent-soft);color:var(--accent-2);} .c-info .dot{background:var(--accent);}
+  .c-mut{background:rgba(255,255,255,.05);color:var(--text-2);} .c-mut .dot{background:var(--muted);}
 
-  /* ================= LOGIN ================= */
-  #loginScreen{position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center;
-    background:radial-gradient(1200px 600px at 50% -10%, rgba(0,111,238,0.18), transparent 60%), var(--bg); padding:20px;}
-  .login-card{width:100%; max-width:400px; background:var(--card); border:1px solid var(--border); border-radius:22px;
-    padding:34px 30px; box-shadow:var(--shadow);}
-  .login-logo{width:52px; height:52px; border-radius:15px; background:linear-gradient(135deg,var(--primary),#8a5cff);
-    display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:24px;}
-  .login-card h1{font-size:21px; font-weight:700; text-align:center;}
-  .login-card p.sub{font-size:13.5px; color:var(--text-2); text-align:center; margin-top:5px; margin-bottom:24px;}
-  .fld{margin-bottom:14px;}
-  .fld label{display:block; font-size:12.5px; color:var(--text-2); margin-bottom:6px; font-weight:500;}
-  .fld input{width:100%; padding:11px 13px; background:var(--bg-2); border:1px solid var(--border); border-radius:11px;
-    color:var(--text); font-size:14px; transition:.15s;}
-  .fld input:focus{outline:none; border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft);}
-  .login-err{color:#ff6b96; font-size:12.5px; margin:2px 0 12px; min-height:16px;}
-  .login-card .btn.primary{width:100%; justify-content:center; padding:12px; font-size:14.5px;}
-  .login-foot{font-size:11.5px; color:var(--muted); text-align:center; margin-top:16px; line-height:1.5;}
+  #login{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px;}
+  .login-card{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:32px 28px;}
+  .login-brand{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+  .monogram{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff;}
+  .login-brand .bn{font-weight:700;font-size:15px;} .login-brand .bs{font-size:11px;color:var(--muted);}
+  #login h1{font-size:19px;font-weight:700;} #login .sub{font-size:13px;color:var(--text-2);margin:4px 0 20px;}
+  .fld{margin-bottom:13px;} .fld label{display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;}
+  .fld input{width:100%;padding:10px 12px;background:var(--bg);border:1px solid var(--border-2);border-radius:9px;color:var(--text);font-size:14px;}
+  .fld input:focus{outline:none;border-color:var(--accent);}
+  .login-err{color:#fca5a5;font-size:12px;min-height:15px;margin-bottom:10px;}
+  #login .btn.primary{width:100%;justify-content:center;padding:11px;}
+  .login-foot{font-size:11px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.5;}
 
-  /* ================= APP SHELL ================= */
-  #app{display:none; min-height:100vh;}
-  .shell{display:grid; grid-template-columns:248px 1fr; min-height:100vh;}
-  @media(max-width:900px){ .shell{grid-template-columns:1fr;} .sidebar{display:none;} }
+  #app{display:none;}
+  .shell{display:grid;grid-template-columns:236px 1fr;min-height:100vh;}
+  @media(max-width:920px){.shell{grid-template-columns:1fr;} .sidebar{display:none;}}
+  .sidebar{background:var(--panel);border-inline-start:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;padding:16px 12px;}
+  .brand{display:flex;align-items:center;gap:10px;padding:8px 8px 16px;}
+  .brand .bn{font-weight:700;font-size:14.5px;line-height:1.1;} .brand .bs{font-size:11px;color:var(--muted);}
+  .nav{display:flex;flex-direction:column;gap:2px;}
+  .nav .sec{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:12px 10px 5px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--text-2);font-size:13.5px;font-weight:500;transition:.13s;}
+  .nav-item:hover{background:var(--elev);color:var(--text);}
+  .nav-item.on{background:var(--accent-soft);color:var(--text);font-weight:600;}
+  .nav-item svg{width:17px;height:17px;flex:0 0 auto;stroke:currentColor;}
+  .nav-item .cnt{margin-inline-start:auto;font-size:11px;font-weight:700;background:var(--elev);color:var(--text-2);padding:1px 7px;border-radius:999px;}
+  .nav-item.on .cnt{background:var(--accent);color:#fff;}
+  .side-sp{flex:1;}
+  .side-foot{border-top:1px solid var(--border);padding-top:10px;margin-top:10px;}
+  .user-chip{display:flex;align-items:center;gap:9px;padding:8px 10px;}
+  .user-chip .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent-2),var(--accent));flex:0 0 auto;}
+  .user-chip .un{font-size:13px;font-weight:600;} .user-chip .ur{font-size:11px;color:var(--muted);}
 
-  .sidebar{background:var(--bg-2); border-inline-start:1px solid var(--border); padding:20px 14px;
-    display:flex; flex-direction:column; position:sticky; top:0; height:100vh;}
-  .brand{display:flex; align-items:center; gap:11px; padding:6px 8px 20px;}
-  .brand .logo{width:38px; height:38px; border-radius:11px; background:linear-gradient(135deg,var(--primary),#8a5cff);
-    display:flex; align-items:center; justify-content:center; font-size:18px; flex:0 0 auto;}
-  .brand .bt{font-weight:700; font-size:15px; line-height:1.1;}
-  .brand .bs{font-size:11.5px; color:var(--muted);}
-  .nav{display:flex; flex-direction:column; gap:3px; margin-top:6px;}
-  .nav-item{display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:11px; color:var(--text-2);
-    font-size:14px; font-weight:500; transition:.15s;}
-  .nav-item:hover{background:var(--card); color:var(--text);}
-  .nav-item.on{background:var(--card-2); color:var(--text); font-weight:600;}
-  .nav-item .ico{width:18px; text-align:center; opacity:.9;}
-  .nav-item .badge-new{margin-inline-start:auto; font-size:10px; font-weight:700; color:#3ee089; background:var(--success-soft); padding:1px 7px; border-radius:999px;}
-  .sidebar .spacer{flex:1;}
-  .side-foot{border-top:1px solid var(--border); padding-top:12px; margin-top:12px;}
-  .user-chip{display:flex; align-items:center; gap:10px; padding:8px;}
-  .user-chip .av{width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#8a5cff,var(--primary)); flex:0 0 auto;}
-  .user-chip .un{font-size:13.5px; font-weight:600; line-height:1.15;}
-  .user-chip .ur{font-size:11.5px; color:var(--muted);}
+  .main{padding:20px 26px 48px;max-width:1240px;}
+  @media(max-width:920px){.main{padding:16px;}}
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+  .topbar h1{font-size:19px;font-weight:700;}
+  .topbar .sub{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .topbar .sp{flex:1;}
+  .status-tag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:7px;border:1px solid var(--border-2);}
+  .status-tag .dot{width:7px;height:7px;border-radius:50%;}
+  .st-demo{color:#fcd34d;} .st-demo .dot{background:var(--warn);}
+  .st-live{color:#86efac;} .st-live .dot{background:var(--good);}
 
-  .main{padding:22px 26px 40px; max-width:1280px;}
-  @media(max-width:900px){ .main{padding:16px;} }
+  .seg{display:inline-flex;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:2px;}
+  .seg button{padding:6px 12px;border-radius:7px;font-size:12.5px;font-weight:600;color:var(--text-2);}
+  .seg button.on{background:var(--elev);color:var(--text);}
 
-  .topbar{display:flex; align-items:center; gap:14px; margin-bottom:22px; flex-wrap:wrap;}
-  .topbar h1{font-size:22px; font-weight:700;}
-  .topbar .sub{font-size:13px; color:var(--muted); margin-top:2px;}
-  .topbar .spacer{flex:1;}
-  .mode-tag{font-size:11.5px; font-weight:600; padding:4px 11px; border-radius:999px; border:1px solid var(--border);}
-  .mode-tag.demo{background:var(--warning-soft); color:#ffca66;}
-  .mode-tag.live{background:var(--success-soft); color:#3ee089;}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;}
+  .panel h3{font-size:13.5px;font-weight:600;} .panel .psub{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .filters{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+  .filters .lbl{font-size:12px;color:var(--muted);}
 
-  .seg{display:inline-flex; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:3px;}
-  .seg button{padding:7px 14px; border-radius:9px; font-size:13px; font-weight:600; color:var(--text-2);}
-  .seg button.on{background:var(--card-hover); color:var(--text);}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:14px;}
+  .kpi{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;}
+  .kpi .kl{font-size:11.5px;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;font-weight:600;}
+  .kpi .kv{font-size:27px;font-weight:700;margin-top:9px;letter-spacing:-.5px;}
+  .kpi .kv .u{font-size:14px;color:var(--text-2);font-weight:500;}
+  .kpi .kd{margin-top:7px;}
 
-  .card{background:var(--card); border:1px solid var(--border); border-radius:var(--r-card); padding:18px 20px;}
-  .card h3{font-size:14px; font-weight:600;}
-  .card .csub{font-size:12px; color:var(--muted); margin-top:2px;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+  @media(max-width:820px){.grid-2{grid-template-columns:1fr;}}
+  .chart-box svg{width:100%;height:auto;}
 
-  .filters{display:flex; gap:10px; align-items:center; margin-bottom:18px; flex-wrap:wrap;}
-  .filters .lbl{font-size:12.5px; color:var(--muted);}
-
-  /* KPIs */
-  .kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; margin-bottom:16px;}
-  .kpi{background:var(--card); border:1px solid var(--border); border-radius:var(--r-card); padding:18px;}
-  .kpi .k-top{display:flex; align-items:center; justify-content:space-between;}
-  .kpi .k-label{font-size:13px; color:var(--text-2);}
-  .kpi .k-ico{width:30px; height:30px; border-radius:9px; background:var(--primary-soft); color:#5aa9ff;
-    display:flex; align-items:center; justify-content:center; font-size:15px;}
-  .kpi .k-val{font-size:29px; font-weight:700; margin-top:12px; letter-spacing:-0.5px;}
-  .kpi .k-val .u{font-size:15px; color:var(--text-2); font-weight:500;}
-  .kpi .k-delta{margin-top:8px;}
-
-  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px;}
-  @media(max-width:820px){ .grid-2{grid-template-columns:1fr;} }
-  .chart-box svg{display:block; width:100%; height:auto;}
-  .legend{display:flex; gap:14px; align-items:center; font-size:12px; color:var(--text-2);}
-  .legend .lg{display:flex; align-items:center; gap:6px;}
-  .legend .dot{width:9px; height:9px; border-radius:50%;}
-
-  /* table */
   .tbl-wrap{overflow-x:auto;}
-  table{width:100%; border-collapse:collapse; font-size:13.5px;}
-  th{text-align:right; font-size:11.5px; font-weight:600; color:var(--muted); padding:10px 12px;
-    border-bottom:1px solid var(--border); white-space:nowrap; cursor:pointer; user-select:none;}
-  td{padding:12px; border-bottom:1px solid var(--border); font-variant-numeric:tabular-nums; white-space:nowrap;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:right;font-size:11px;font-weight:600;color:var(--muted);padding:9px 11px;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;text-transform:uppercase;letter-spacing:.03em;}
+  td{padding:11px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;white-space:nowrap;}
   tr:last-child td{border-bottom:none;}
-  tr.total td{font-weight:700; border-top:1px solid var(--border-strong);}
-  .status-cell{display:flex; align-items:center; gap:8px;}
-  .dot9{width:9px; height:9px; border-radius:50%; flex:0 0 auto;}
-  .dot9.on{background:var(--success); box-shadow:0 0 8px rgba(23,201,100,.6);}
-  .dot9.off{background:var(--muted);}
-  .dot9.err{background:var(--danger);}
-  .agent-name{font-weight:600;}
-  .err-msg{color:#ff6b96; font-size:11.5px; white-space:normal; max-width:280px;}
-  .bar-mini{display:flex; align-items:center; gap:8px;}
-  .bar-mini .track{width:90px; height:6px; background:var(--primary-soft); border-radius:4px; overflow:hidden;}
-  .bar-mini .fill{height:100%; background:var(--primary); border-radius:4px;}
+  tr.total td{font-weight:700;border-top:1px solid var(--border-2);}
+  .status-cell{display:flex;align-items:center;gap:8px;}
+  .sdot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
+  .sdot.on{background:var(--good);} .sdot.off{background:var(--muted);} .sdot.err{background:var(--danger);}
+  .err-msg{color:#fca5a5;font-size:11px;white-space:normal;max-width:280px;}
+  .mini-track{width:88px;height:5px;background:var(--elev);border-radius:3px;overflow:hidden;} .mini-fill{height:100%;background:var(--accent);}
 
-  .section-title{font-size:16px; font-weight:700; margin:26px 0 6px;}
-  .section-sub{font-size:12.5px; color:var(--muted); margin-bottom:14px;}
-
-  /* ===== analysis view ===== */
-  .insight-hero{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:18px;}
-  .ins-card{border-radius:var(--r-card); padding:16px; border:1px solid var(--border); background:var(--card);}
-  .ins-card .n{font-size:26px; font-weight:700; letter-spacing:-0.5px;}
-  .ins-card .t{font-size:12.5px; color:var(--text-2); margin-top:3px;}
-  .ins-card.crit{background:linear-gradient(180deg,var(--danger-soft),transparent); border-color:rgba(243,18,96,0.3);}
-  .ins-card.warn{background:linear-gradient(180deg,var(--warning-soft),transparent); border-color:rgba(245,165,36,0.3);}
-  .ins-card.good{background:linear-gradient(180deg,var(--success-soft),transparent); border-color:rgba(23,201,100,0.3);}
-  .ins-card.info{background:linear-gradient(180deg,var(--primary-soft),transparent); border-color:rgba(0,111,238,0.3);}
-
-  .camp{background:var(--card); border:1px solid var(--border); border-radius:var(--r-card); padding:16px 18px; margin-bottom:12px;}
-  .camp.sev-critical{border-inline-start:3px solid var(--danger);}
-  .camp.sev-warning{border-inline-start:3px solid var(--warning);}
-  .camp.sev-good{border-inline-start:3px solid var(--success);}
-  .camp.sev-info{border-inline-start:3px solid var(--primary);}
-  .camp .c-head{display:flex; align-items:flex-start; gap:12px; flex-wrap:wrap;}
-  .camp .c-name{font-size:15px; font-weight:700;}
-  .camp .c-agent{font-size:12px; color:var(--muted); margin-top:2px;}
-  .camp .c-head .spacer{flex:1;}
-  .metric-row{display:flex; gap:8px; flex-wrap:wrap; margin:12px 0;}
-  .metric{background:var(--bg-2); border:1px solid var(--border); border-radius:10px; padding:7px 11px; min-width:78px;}
-  .metric .ml{font-size:10.5px; color:var(--muted);}
-  .metric .mv{font-size:14.5px; font-weight:700; margin-top:2px; font-variant-numeric:tabular-nums;}
-  .metric .mv.bad{color:#ff6b96;} .metric .mv.good{color:#3ee089;} .metric .mv.warn{color:#ffca66;}
-  .flags{display:flex; flex-direction:column; gap:8px; margin-top:6px;}
-  .flag{display:flex; gap:10px; align-items:flex-start; font-size:13px; background:var(--bg-2); border:1px solid var(--border);
-    border-radius:11px; padding:10px 12px;}
-  .flag .fi{font-size:15px; flex:0 0 auto; margin-top:1px;}
-  .flag .ft b{font-weight:700;}
-  .flag .fr{color:var(--text-2); margin-top:2px; font-size:12.5px;}
-  .flag.critical{border-color:rgba(243,18,96,0.35);}
-  .flag.warning{border-color:rgba(245,165,36,0.30);}
-  .flag.good{border-color:rgba(23,201,100,0.30);}
-  .flag.info{border-color:rgba(0,111,238,0.30);}
-  .empty{color:var(--muted); font-size:13.5px; padding:30px; text-align:center;}
-
-  /* ===== action center ===== */
-  .act-controls{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
-  .act-controls select{padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:11px;color:var(--text);font-size:13px;}
-  .act-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start;}
-  .act-card.pri-critical{border-inline-start:3px solid var(--danger);}
-  .act-card.pri-high{border-inline-start:3px solid var(--warning);}
-  .act-card.pri-opportunity{border-inline-start:3px solid var(--success);}
-  .act-ico{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto;}
-  .act-ico.pri-critical{background:var(--danger-soft);}
-  .act-ico.pri-high{background:var(--warning-soft);}
-  .act-ico.pri-opportunity{background:var(--success-soft);}
-  .act-main{flex:1;min-width:0;}
-  .act-crumb{font-size:11.5px;color:var(--muted);}
-  .act-title{font-size:15px;font-weight:700;margin-top:2px;}
-  .act-reason{font-size:13px;color:var(--text-2);margin-top:5px;line-height:1.55;}
-  .act-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;}
-  .act-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;}
-  .act-btns a.btn{text-decoration:none;}
-  .act-done{opacity:.55;align-items:center;}
-  .done-sec{margin-top:22px;}
-  .callout-live{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--danger-soft);border:1px solid rgba(243,18,96,.3);font-size:12.5px;color:#ffb3c8;}
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(30px);background:var(--card-2);border:1px solid var(--border-strong);border-radius:12px;padding:12px 20px;font-size:14px;font-weight:600;box-shadow:0 10px 40px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:.25s;z-index:300;}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-  .toast.ok{border-color:rgba(23,201,100,.4);}
-
-  /* tooltip */
-  #tooltip{position:fixed; z-index:120; pointer-events:none; display:none; background:var(--card-2);
-    border:1px solid var(--border-strong); border-radius:11px; box-shadow:var(--shadow); padding:10px 13px; font-size:12.5px; min-width:140px;}
-  #tooltip .tt-t{color:var(--muted); font-size:11px; margin-bottom:6px;}
-  #tooltip .tt-r{display:flex; align-items:center; gap:8px; margin-top:4px;}
-  #tooltip .tt-k{width:10px; height:3px; border-radius:2px;}
-  #tooltip .tt-v{font-weight:700;} #tooltip .tt-n{color:var(--text-2);}
-
-  /* modal */
-  .overlay{position:fixed; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(3px); z-index:150; display:none;
-    align-items:flex-start; justify-content:center; padding:32px 16px; overflow:auto;}
-  .overlay.open{display:flex;}
-  .modal{background:var(--card); border:1px solid var(--border); border-radius:20px; width:100%; max-width:700px; padding:24px 26px;}
-  .modal h2{font-size:18px; font-weight:700;}
-  .modal .mhint{font-size:12.5px; color:var(--muted); margin:4px 0 16px;}
-  .m-field{margin-bottom:15px;}
-  .m-field label{display:block; font-size:12.5px; font-weight:600; color:var(--text-2); margin-bottom:6px;}
-  .m-field input,.m-field select,.m-field textarea{width:100%; padding:10px 12px; background:var(--bg-2);
-    border:1px solid var(--border); border-radius:11px; color:var(--text); font-size:13.5px;}
-  .m-field input:focus,.m-field select:focus,.m-field textarea:focus{outline:none; border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft);}
-  .m-field textarea{min-height:60px; direction:ltr; text-align:left; resize:vertical;}
-  .m-cols{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
-  @media(max-width:600px){.m-cols{grid-template-columns:1fr;}}
-  .agents-ed{border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:8px;}
-  .ag-row{display:grid; grid-template-columns:1fr 1.1fr 1.3fr 32px; gap:8px; padding:9px 10px; border-bottom:1px solid var(--border); align-items:center;}
-  .ag-row:last-child{border-bottom:none;}
-  .ag-row input{padding:8px 9px; background:var(--bg-2); border:1px solid var(--border); border-radius:9px; color:var(--text); font-size:13px; width:100%;}
-  .ag-row input.ltr{direction:ltr; text-align:left;}
-  .ag-row .del{color:#ff6b96; font-size:16px; text-align:center;}
-  .ag-head{display:grid; grid-template-columns:1fr 1.1fr 1.3fr 32px; gap:8px; padding:6px 10px; font-size:11px; color:var(--muted);}
-  details.guide{border:1px solid var(--border); border-radius:12px; padding:11px 14px; margin-bottom:16px; background:var(--bg-2);}
-  details.guide summary{cursor:pointer; font-weight:600; font-size:13px;}
-  details.guide ol{padding-inline-start:18px; margin-top:9px; font-size:12.5px; color:var(--text-2); line-height:1.7;}
-  details.guide code{background:var(--primary-soft); border-radius:4px; padding:1px 5px; font-size:11.5px; direction:ltr; display:inline-block; color:#8cc4ff;}
-  .modal-actions{display:flex; gap:10px; margin-top:20px; align-items:center;}
-
-  .banner{border:1px solid var(--border); background:var(--warning-soft); border-radius:14px; padding:12px 16px;
-    font-size:13px; margin-bottom:18px; display:flex; align-items:center; gap:11px; flex-wrap:wrap;}
-  .loading-dim{opacity:.5; pointer-events:none; transition:.2s;}
   .view{display:none;} .view.on{display:block;}
-  details.dtable summary{cursor:pointer; font-size:13px; color:var(--text-2); padding:4px 0;}
+
+  .ins-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px;}
+  .ins{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:15px 17px;}
+  .ins .n{font-size:24px;font-weight:700;letter-spacing:-.5px;} .ins .t{font-size:12px;color:var(--text-2);margin-top:3px;}
+  .ins.crit{border-color:rgba(239,68,68,.25);} .ins.crit .n{color:#fca5a5;}
+  .ins.warn{border-color:rgba(245,158,11,.25);} .ins.warn .n{color:#fcd34d;}
+  .ins.good{border-color:rgba(34,197,94,.25);} .ins.good .n{color:#86efac;}
+
+  .act{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:15px 17px;margin-bottom:11px;display:flex;gap:13px;}
+  .act.pri-critical{border-inline-start:2px solid var(--danger);}
+  .act.pri-high{border-inline-start:2px solid var(--warn);}
+  .act.pri-opportunity{border-inline-start:2px solid var(--good);}
+  .act-sev{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .act-sev.pri-critical{background:var(--danger-soft);color:#fca5a5;}
+  .act-sev.pri-high{background:var(--warn-soft);color:#fcd34d;}
+  .act-sev.pri-opportunity{background:var(--good-soft);color:#86efac;}
+  .act-sev svg{width:18px;height:18px;stroke:currentColor;}
+  .act-main{flex:1;min-width:0;}
+  .act-crumb{font-size:11px;color:var(--muted);}
+  .act-title{font-size:14.5px;font-weight:700;margin-top:2px;}
+  .act-reason{font-size:12.5px;color:var(--text-2);margin-top:5px;line-height:1.5;}
+  .act-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;}
+  .act-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .act-btns a.btn{text-decoration:none;}
+  .flags{display:flex;flex-direction:column;gap:7px;margin-top:6px;}
+  .flag{display:flex;gap:9px;font-size:12.5px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:9px 11px;}
+  .flag .fb{width:3px;border-radius:2px;flex:0 0 auto;}
+  .flag.critical .fb{background:var(--danger);} .flag.warning .fb{background:var(--warn);} .flag.good .fb{background:var(--good);} .flag.info .fb{background:var(--accent);}
+  .flag b{font-weight:700;} .flag .fr{color:var(--text-2);margin-top:2px;}
+  .metric-row{display:flex;gap:7px;flex-wrap:wrap;margin:11px 0;}
+  .metric{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;min-width:72px;}
+  .metric .ml{font-size:10px;color:var(--muted);text-transform:uppercase;} .metric .mv{font-size:14px;font-weight:700;margin-top:2px;}
+  .mv.bad{color:#fca5a5;} .mv.good{color:#86efac;} .mv.warn{color:#fcd34d;}
+  .empty{color:var(--muted);font-size:13px;padding:34px;text-align:center;}
+  .done-sec{margin-top:20px;} details summary{cursor:pointer;font-size:12.5px;color:var(--text-2);padding:5px 0;}
+
+  .toggle-row{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;}
+  .toggle-row .tinfo{flex:1;} .toggle-row .tt{font-size:13.5px;font-weight:600;} .toggle-row .td{font-size:12px;color:var(--text-2);margin-top:2px;}
+  .switch{width:44px;height:25px;border-radius:999px;background:var(--elev);border:1px solid var(--border-2);position:relative;flex:0 0 auto;transition:.15s;cursor:pointer;}
+  .switch::after{content:"";position:absolute;top:2px;inset-inline-end:2px;width:19px;height:19px;border-radius:50%;background:#8a929c;transition:.15s;}
+  .switch.on{background:var(--accent);border-color:transparent;} .switch.on::after{inset-inline-end:20px;background:#fff;}
+  .switch.danger.on{background:var(--danger);}
+  .rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;} @media(max-width:640px){.rules-grid{grid-template-columns:1fr;}}
+  .rule{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+  .rule label{display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;} .rule .rh{font-size:11px;color:var(--muted);margin-top:5px;}
+  .rule input{width:100%;padding:8px 10px;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;color:var(--text);font-size:13px;}
+  .connect-note{background:var(--warn-soft);border:1px solid rgba(245,158,11,.3);border-radius:var(--r);padding:16px 18px;font-size:13px;color:var(--text-2);line-height:1.6;}
+
+  .cbank{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+  .cre{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;}
+  .cre .cn{font-size:14px;font-weight:700;} .cre .cm{font-size:11.5px;color:var(--text-2);margin-top:6px;line-height:1.6;}
+  .cre .ctags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  .cre .cf{display:flex;gap:8px;margin-top:12px;align-items:center;}
+
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:150;display:none;align-items:flex-start;justify-content:center;padding:30px 16px;overflow:auto;}
+  .overlay.open{display:flex;}
+  .modal{background:var(--panel);border:1px solid var(--border-2);border-radius:16px;width:100%;max-width:680px;padding:22px 24px;}
+  .modal h2{font-size:17px;font-weight:700;} .modal .mh{font-size:12px;color:var(--muted);margin:4px 0 16px;}
+  .mf{margin-bottom:14px;} .mf label{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px;}
+  .mf input,.mf select,.mf textarea{width:100%;padding:9px 11px;background:var(--bg);border:1px solid var(--border-2);border-radius:9px;color:var(--text);font-size:13px;}
+  .mf textarea{min-height:56px;direction:ltr;text-align:left;resize:vertical;}
+  .mcols{display:grid;grid-template-columns:1fr 1fr;gap:12px;} @media(max-width:600px){.mcols{grid-template-columns:1fr;}}
+  .ag-ed{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px;}
+  .ag-row{display:grid;grid-template-columns:1fr 1.1fr 1.2fr 30px;gap:7px;padding:8px 10px;border-bottom:1px solid var(--border);align-items:center;}
+  .ag-row:last-child{border-bottom:none;} .ag-row input{padding:7px 9px;background:var(--bg);border:1px solid var(--border-2);border-radius:7px;color:var(--text);font-size:12.5px;width:100%;}
+  .ag-row input.ltr{direction:ltr;text-align:left;} .ag-head{display:grid;grid-template-columns:1fr 1.1fr 1.2fr 30px;gap:7px;padding:5px 10px;font-size:10.5px;color:var(--muted);}
+  .m-act{display:flex;gap:10px;margin-top:18px;align-items:center;}
+  details.guide{border:1px solid var(--border);border-radius:10px;padding:10px 13px;margin-bottom:14px;background:var(--bg);}
+  details.guide summary{font-weight:600;font-size:12.5px;} details.guide ol{padding-inline-start:18px;margin-top:8px;font-size:12px;color:var(--text-2);line-height:1.7;}
+  details.guide code{background:var(--accent-soft);border-radius:4px;padding:1px 5px;font-size:11px;direction:ltr;display:inline-block;color:var(--accent-2);}
+
+  #tooltip{position:fixed;z-index:120;pointer-events:none;display:none;background:var(--elev);border:1px solid var(--border-2);border-radius:9px;box-shadow:0 8px 30px rgba(0,0,0,.5);padding:9px 12px;font-size:12px;min-width:130px;}
+  #tooltip .tt-t{color:var(--muted);font-size:10.5px;margin-bottom:5px;}
+  #tooltip .tt-r{display:flex;align-items:center;gap:7px;margin-top:3px;} #tooltip .tt-k{width:9px;height:3px;border-radius:2px;} #tooltip .tt-v{font-weight:700;} #tooltip .tt-n{color:var(--text-2);}
+  #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(28px);background:var(--elev);border:1px solid var(--border-2);border-radius:10px;padding:11px 18px;font-size:13.5px;font-weight:600;box-shadow:0 10px 40px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:.22s;z-index:300;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);} #toast.ok{border-color:rgba(34,197,94,.4);}
+  .loading-dim{opacity:.5;pointer-events:none;transition:.2s;}
+  .callout-live{margin-top:12px;padding:10px 12px;border-radius:9px;background:var(--danger-soft);border:1px solid rgba(239,68,68,.3);font-size:12px;color:#fca5a5;}
+  .section-note{font-size:12px;color:var(--muted);margin:6px 0 14px;}
 </style>
 </head>
 <body>
 
-<!-- ================= LOGIN ================= -->
-<div id="loginScreen">
+<div id="login">
   <div class="login-card">
-    <div class="login-logo">📊</div>
-    <h1 id="loginTitle">כניסת מנהל</h1>
-    <p class="sub" id="loginSub">התחבר כדי לגשת לדשבורד</p>
-
-    <div id="loginFields">
-      <div class="fld">
-        <label>שם משתמש</label>
-        <input type="text" id="liUser" autocomplete="username" placeholder="admin">
-      </div>
-      <div class="fld">
-        <label>סיסמה</label>
-        <input type="password" id="liPass" autocomplete="current-password" placeholder="••••••••">
-      </div>
-      <div class="fld" id="liConfirmWrap" style="display:none;">
-        <label>אימות סיסמה</label>
-        <input type="password" id="liPass2" placeholder="••••••••">
-      </div>
-    </div>
+    <div class="login-brand"><div class="monogram">A</div><div><div class="bn">Ads Command</div><div class="bs">Autonomous Campaigner</div></div></div>
+    <h1 id="loginTitle">Sign in</h1>
+    <div class="sub" id="loginSub">התחבר כדי לגשת למערכת</div>
+    <div class="fld"><label>שם משתמש</label><input type="text" id="liUser" autocomplete="username"></div>
+    <div class="fld"><label>סיסמה</label><input type="password" id="liPass" autocomplete="current-password"></div>
+    <div class="fld" id="liConfirmWrap" style="display:none;"><label>אימות סיסמה</label><input type="password" id="liPass2"></div>
     <div class="login-err" id="loginErr"></div>
     <button class="btn primary" id="loginBtn">התחבר</button>
     <div class="login-foot" id="loginFoot"></div>
   </div>
 </div>
 
-<!-- ================= APP ================= -->
-<div id="app">
-<div class="shell">
-  <!-- sidebar -->
+<div id="app"><div class="shell">
   <aside class="sidebar">
-    <div class="brand">
-      <div class="logo">📊</div>
-      <div><div class="bt">Ads Command</div><div class="bs">ניהול סוכנים</div></div>
-    </div>
-    <nav class="nav">
-      <a class="nav-item on" data-view="actions"><span class="ico">⚡</span> מרכז פעולות <span class="badge-new" id="actCount">0</span></a>
-      <a class="nav-item" data-view="dashboard"><span class="ico">▣</span> דשבורד</a>
-      <a class="nav-item" data-view="analysis"><span class="ico">◎</span> ניתוח קמפיינים <span class="badge-new">AI</span></a>
-      <a class="nav-item" data-view="agents"><span class="ico">☷</span> טבלת סוכנים</a>
+    <div class="brand"><div class="monogram">A</div><div><div class="bn">Ads Command</div><div class="bs">Autonomous</div></div></div>
+    <nav class="nav" id="nav">
+      <div class="sec">ניהול</div>
+      <a class="nav-item on" data-view="overview" data-ic="grid"> סקירה</a>
+      <a class="nav-item" data-view="actions" data-ic="inbox"> מרכז פעולות <span class="cnt" id="actCount">0</span></a>
+      <a class="nav-item" data-view="analysis" data-ic="activity"> ניתוח קמפיינים</a>
+      <a class="nav-item" data-view="agents" data-ic="users"> סוכנים</a>
+      <div class="sec">אוטומציה</div>
+      <a class="nav-item" data-view="creatives" data-ic="image"> בנק קריאטיבים</a>
+      <a class="nav-item" data-view="autonomy" data-ic="sliders"> אוטונומיה וחוקים</a>
     </nav>
-    <div class="spacer"></div>
+    <div class="side-sp"></div>
     <div class="side-foot">
-      <a class="nav-item" id="navSettings"><span class="ico">⚙</span> הגדרות</a>
-      <a class="nav-item" id="navLogout"><span class="ico">⎋</span> התנתק</a>
-      <div class="user-chip">
-        <div class="av"></div>
-        <div><div class="un" id="sideUser">Admin</div><div class="ur">מנהל מערכת</div></div>
-      </div>
+      <a class="nav-item" id="navSettings" data-ic="settings"> הגדרות</a>
+      <a class="nav-item" id="navLogout" data-ic="logout"> התנתק</a>
+      <div class="user-chip"><div class="av"></div><div><div class="un" id="sideUser">Admin</div><div class="ur">מנהל מערכת</div></div></div>
     </div>
   </aside>
 
-  <!-- main -->
   <main class="main">
     <div class="topbar">
-      <div>
-        <h1 id="pageTitle">שלום 👋</h1>
-        <div class="sub" id="pageSub">סקירה כללית של כל הסוכנים</div>
-      </div>
-      <div class="spacer"></div>
-      <span class="mode-tag demo" id="modeTag">מצב דמו</span>
-      <span class="sub" id="lastUpdated" style="color:var(--muted);font-size:12px;"></span>
-      <button class="btn sm" id="btnRefresh">↻ רענון</button>
-      <button class="btn sm primary" id="btnSettings2">⚙ הגדרות</button>
+      <div><h1 id="pageTitle">סקירה</h1><div class="sub" id="pageSub">כל הסוכנים במבט אחד</div></div>
+      <div class="sp"></div>
+      <span class="status-tag st-demo" id="modeTag"><span class="dot"></span><span id="modeTxt">מצב דמו</span></span>
+      <span class="sub" id="lastUpdated" style="color:var(--muted);font-size:11.5px;"></span>
+      <button class="btn sm" id="btnRefresh" data-ic="refresh"> רענון</button>
+      <button class="btn sm primary" id="btnSettings2" data-ic="settings"> הגדרות</button>
     </div>
 
-    <div class="banner" id="demoBanner">
-      <span>👋</span>
-      <span>אתה צופה ב<b>נתוני דמו</b>. לחיבור נתונים אמיתיים — פתח <b>הגדרות</b>, הזן טוקן והוסף חשבונות. יש שם מדריך מלא.</span>
-    </div>
-
-    <div class="filters">
+    <div class="filters" id="rangeWrap">
       <span class="lbl">טווח:</span>
       <div class="seg" id="rangeSeg">
-        <button data-range="today">היום</button>
-        <button data-range="yesterday">אתמול</button>
-        <button data-range="7" class="on">7 ימים</button>
-        <button data-range="14">14 יום</button>
-        <button data-range="30">30 יום</button>
+        <button data-range="today">היום</button><button data-range="yesterday">אתמול</button>
+        <button data-range="7" class="on">7 ימים</button><button data-range="14">14 יום</button><button data-range="30">30 יום</button>
       </div>
     </div>
 
-    <!-- ===== ACTION CENTER VIEW ===== -->
-    <section class="view on" id="view-actions">
-      <div class="insight-hero" id="actionSummary"></div>
-      <div class="act-controls">
-        <span class="lbl" style="color:var(--muted);font-size:12.5px;">סוכן:</span>
-        <select id="actAgent"><option value="all">כל הסוכנים</option></select>
-        <span class="lbl" style="color:var(--muted);font-size:12.5px;">סוג פעולה:</span>
-        <select id="actType">
-          <option value="all">הכל</option>
-          <option value="pause">כיבוי</option>
-          <option value="creative">החלפת קריאטיב</option>
-          <option value="budget">צמצום תקציב</option>
-          <option value="scale">הגדלה (Scale)</option>
+    <section class="view on" id="view-overview">
+      <div class="kpis" id="kpiRow"></div>
+      <div class="grid-2">
+        <div class="panel"><h3>הוצאה יומית</h3><div class="psub" id="spendSub"></div><div class="chart-box" id="spendChart" style="margin-top:10px;"></div></div>
+        <div class="panel"><h3>לידים יומיים</h3><div class="psub" id="leadsSub"></div><div class="chart-box" id="leadsChart" style="margin-top:10px;"></div></div>
+      </div>
+      <div class="panel"><h3>הוצאה ולידים לפי סוכן</h3><div class="psub">ממוין מהגבוה לנמוך</div><div class="chart-box" id="agentChart" style="margin-top:12px;"></div></div>
+    </section>
+
+    <section class="view" id="view-actions">
+      <div class="ins-row" id="actionSummary"></div>
+      <div class="filters">
+        <span class="lbl">סוכן:</span><select id="actAgent" class="btn"></select>
+        <span class="lbl">סוג:</span>
+        <select id="actType" class="btn">
+          <option value="all">הכל</option><option value="pause">כיבוי</option><option value="creative">קריאטיב</option><option value="budget">תקציב</option><option value="scale">הגדלה</option>
         </select>
       </div>
       <div id="actionsBody"></div>
     </section>
 
-    <!-- ===== DASHBOARD VIEW ===== -->
-    <section class="view" id="view-dashboard">
-      <div class="kpis" id="kpiRow"></div>
-      <div class="grid-2">
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div><h3>הוצאה יומית</h3><div class="csub" id="spendSub"></div></div>
-          </div>
-          <div class="chart-box" id="spendChart" style="margin-top:10px;"></div>
-        </div>
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div><h3>לידים יומיים</h3><div class="csub" id="leadsSub"></div></div>
-          </div>
-          <div class="chart-box" id="leadsChart" style="margin-top:10px;"></div>
-        </div>
-      </div>
-      <div class="card">
-        <h3>הוצאה ולידים לפי סוכן</h3>
-        <div class="csub">בטווח הנבחר, ממוין מהגבוה לנמוך</div>
-        <div class="chart-box" id="agentChart" style="margin-top:12px;"></div>
-      </div>
-    </section>
-
-    <!-- ===== ANALYSIS VIEW ===== -->
     <section class="view" id="view-analysis">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
-        <span class="lbl" style="color:var(--muted);font-size:12.5px;">רמת ניתוח:</span>
-        <div class="seg" id="levelSeg">
-          <button data-level="ad" class="on">מודעות</button>
-          <button data-level="campaign">קמפיינים</button>
-        </div>
-        <input type="text" id="analysisSearch" placeholder="חיפוש מודעה / קמפיין / סוכן…"
-          style="flex:1;min-width:180px;max-width:340px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:11px;color:var(--text);font-size:13px;">
+      <div class="filters">
+        <span class="lbl">רמה:</span>
+        <div class="seg" id="levelSeg"><button data-level="ad" class="on">מודעות</button><button data-level="campaign">קמפיינים</button></div>
+        <input type="text" id="analysisSearch" class="btn" style="min-width:200px;" placeholder="חיפוש מודעה / קמפיין / סוכן…">
       </div>
-      <div class="insight-hero" id="insightHero"></div>
+      <div class="ins-row" id="insightHero"></div>
       <div id="analysisBody"></div>
     </section>
 
-    <!-- ===== AGENTS TABLE VIEW ===== -->
     <section class="view" id="view-agents">
-      <div class="card">
-        <h3>טבלת סוכנים</h3>
-        <div class="csub">לחיצה על כותרת עמודה ממיינת</div>
-        <div class="tbl-wrap" style="margin-top:12px;"><table id="agentsTable"></table></div>
-      </div>
-      <div class="card" style="margin-top:14px;">
-        <details class="dtable">
-          <summary>📋 תצוגת טבלה יומית (הוצאה + לידים לפי יום)</summary>
-          <div class="tbl-wrap" style="margin-top:10px;"><table id="dailyTable"></table></div>
-        </details>
-      </div>
+      <div class="panel"><h3>טבלת סוכנים</h3><div class="psub">לחיצה על כותרת ממיינת</div><div class="tbl-wrap" style="margin-top:12px;"><table id="agentsTable"></table></div></div>
+      <div class="panel" style="margin-top:14px;"><details><summary>תצוגת טבלה יומית</summary><div class="tbl-wrap" style="margin-top:10px;"><table id="dailyTable"></table></div></details></div>
+    </section>
+
+    <section class="view" id="view-creatives">
+      <div id="creativesHead"></div>
+      <div id="creativesBody"></div>
+    </section>
+
+    <section class="view" id="view-autonomy">
+      <div id="autonomyBody"></div>
     </section>
   </main>
-</div>
-</div>
+</div></div>
 
 <div id="tooltip"></div>
-<div id="toast" class="toast"></div>
+<div id="toast"></div>
 
-<!-- ================= execute confirm modal ================= -->
-<div class="overlay" id="execOverlay">
-  <div class="modal" style="max-width:460px;">
-    <h2 id="execTitle"></h2>
-    <div class="mhint" id="execDesc" style="line-height:1.6;"></div>
-    <div id="execStatus" style="font-size:13px;min-height:18px;margin-top:8px;"></div>
-    <div class="modal-actions">
-      <button class="btn primary" id="execConfirm">אשר ובצע</button>
-      <button class="btn" id="execCancel">ביטול</button>
-    </div>
+<div class="overlay" id="execOverlay"><div class="modal" style="max-width:440px;">
+  <h2 id="execTitle"></h2><div class="mh" id="execDesc" style="line-height:1.6;"></div>
+  <div id="execStatus" style="font-size:12.5px;min-height:16px;margin-top:8px;"></div>
+  <div class="m-act"><button class="btn primary" id="execConfirm">אשר ובצע</button><button class="btn" id="execCancel">ביטול</button></div>
+</div></div>
+
+<div class="overlay" id="creOverlay"><div class="modal" style="max-width:520px;">
+  <h2>הוסף קריאטיב לבנק</h2><div class="mh">מטא-דאטה של הקריאטיב. הקישור יכול להצביע ל-Drive / URL של הנכס.</div>
+  <div class="mf"><label>שם הקריאטיב</label><input type="text" id="creName" placeholder="למשל: וידאו UGC — עדות לקוח"></div>
+  <div class="mcols">
+    <div class="mf"><label>זווית / מסר</label><input type="text" id="creAngle" placeholder="הצעה / כאב / הוכחה חברתית"></div>
+    <div class="mf"><label>פורמט</label><input type="text" id="creFormat" placeholder="וידאו / תמונה / קרוסלה"></div>
+    <div class="mf"><label>קהל יעד</label><input type="text" id="creAud" placeholder="קר / ריטרגטינג / לוקאלייק"></div>
+    <div class="mf"><label>סטטוס</label><select id="creStatus"><option value="ready">מוכן</option><option value="testing">בבדיקה</option><option value="winner">מנצח</option><option value="retired">בארכיון</option></select></div>
   </div>
-</div>
+  <div class="mf"><label>קישור לנכס (אופציונלי)</label><input type="text" id="creUrl" class="ltr" style="direction:ltr;text-align:left;" placeholder="https://…"></div>
+  <div class="mf"><label>הערה</label><textarea id="creNote"></textarea></div>
+  <div class="m-act"><button class="btn primary" id="creSave">שמור לבנק</button><button class="btn" id="creCancel">ביטול</button></div>
+</div></div>
 
-<!-- ================= settings modal ================= -->
-<div class="overlay" id="settingsOverlay">
-  <div class="modal">
-    <h2>הגדרות חיבור</h2>
-    <div class="mhint">הכל נשמר בדפדפן שלך בלבד. הטוקן לא נשלח לשום מקום מלבד Meta.</div>
-
-    <details class="guide">
-      <summary>📖 מדריך הקמה מהיר</summary>
-      <ol>
-        <li>צור אפליקציה ב-<code>developers.facebook.com</code> (סוג Business).</li>
-        <li>ודא שהמשתמש שלך הוא Analyst/Admin על חשבון המודעות (או שתף כשותף).</li>
-        <li>הפק טוקן ב-<code>tools/explorer</code> עם הרשאת <code>ads_read</code>, או צור System User טוקן קבוע.</li>
-        <li>מזהה חשבון: ב-Ads Manager אחרי <code>act=</code>. אפשר להדביק גם URL שלם — המערכת מנקה לבד.</li>
-        <li>לכל עובד עם Business נפרד — אפשר להדביק לו טוקן משלו בשדה הטוקן של אותה שורה.</li>
-      </ol>
-    </details>
-
-    <div class="m-field">
-      <label>טוקן גישה ראשי (משמש כברירת מחדל לכל הסוכנים)</label>
-      <textarea id="cfgToken" placeholder="EAAG..."></textarea>
-    </div>
-
-    <div class="m-cols">
-      <div class="m-field">
-        <label>ספירת לידים לפי</label>
-        <select id="cfgLeadMode">
-          <option value="auto">אוטומטי — כל הלידים (מומלץ)</option>
-          <option value="pixel">פיקסל בלבד</option>
-          <option value="custom">אירוע מותאם…</option>
-        </select>
-        <input type="text" id="cfgLeadCustom" style="margin-top:6px; display:none;" placeholder="offsite_conversion.custom....">
-      </div>
-      <div class="m-field">
-        <label>רענון אוטומטי</label>
-        <select id="cfgRefresh">
-          <option value="5">כל 5 דקות</option>
-          <option value="10" selected>כל 10 דקות</option>
-          <option value="15">כל 15 דקות</option>
-          <option value="30">כל 30 דקות</option>
-          <option value="0">כבוי</option>
-        </select>
-      </div>
-      <div class="m-field">
-        <label>גרסת API</label>
-        <input type="text" id="cfgApiVer" value="v23.0" class="ltr" style="direction:ltr;text-align:left;">
-      </div>
-      <div class="m-field">
-        <label>מטבע תצוגה</label>
-        <select id="cfgCurrency">
-          <option value="auto">אוטומטי</option>
-          <option value="ILS">₪ שקל</option>
-          <option value="USD">$ דולר</option>
-          <option value="EUR">€ אירו</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="m-field">
-      <label>סוכנים</label>
-      <div class="ag-head"><span>שם</span><span>מזהה חשבון</span><span>טוקן (אופציונלי)</span><span></span></div>
-      <div class="agents-ed" id="agentsEditor"></div>
-      <button class="btn sm ghost" id="btnAddAgent">+ הוסף סוכן</button>
-    </div>
-
-    <div class="modal-actions">
-      <button class="btn primary" id="btnSaveCfg">שמור והתחבר</button>
-      <button class="btn" id="btnCancelCfg">ביטול</button>
-      <div style="flex:1"></div>
-      <button class="btn ghost" id="btnDemo">חזרה לדמו</button>
-    </div>
+<div class="overlay" id="settingsOverlay"><div class="modal">
+  <h2>הגדרות</h2><div class="mh">הכל נשמר בדפדפן. הטוקן נשלח רק ל-Meta.</div>
+  <details class="guide"><summary>מדריך הקמה מהיר</summary><ol>
+    <li>אפליקציית Meta ב-<code>developers.facebook.com</code> (Business).</li>
+    <li>System User עם הרשאת <code>ads_management</code> (לכתיבה) → הפק טוקן קבוע.</li>
+    <li>מזהה חשבון: אחרי <code>act=</code> ב-Ads Manager. אפשר להדביק URL שלם.</li>
+  </ol></details>
+  <div class="mf"><label>טוקן גישה ראשי</label><textarea id="cfgToken" placeholder="EAAG…"></textarea></div>
+  <div class="mcols">
+    <div class="mf"><label>ספירת לידים</label><select id="cfgLeadMode"><option value="auto">אוטומטי (מומלץ)</option><option value="pixel">פיקסל בלבד</option><option value="custom">אירוע מותאם…</option></select><input type="text" id="cfgLeadCustom" style="margin-top:6px;display:none;" placeholder="offsite_conversion.custom…"></div>
+    <div class="mf"><label>רענון אוטומטי</label><select id="cfgRefresh"><option value="5">כל 5 דקות</option><option value="10" selected>כל 10 דקות</option><option value="15">כל 15 דקות</option><option value="30">כל 30 דקות</option><option value="0">כבוי</option></select></div>
+    <div class="mf"><label>גרסת API</label><input type="text" id="cfgApiVer" value="v23.0" class="ltr" style="direction:ltr;text-align:left;"></div>
+    <div class="mf"><label>מטבע</label><select id="cfgCurrency"><option value="auto">אוטומטי</option><option value="ILS">₪ שקל</option><option value="USD">$ דולר</option><option value="EUR">€ אירו</option></select></div>
   </div>
-</div>
+  <div class="mf"><label>מפתח שרת (API_KEY) — לחיבור עמודי האוטונומיה ובנק הקריאטיבים למוח</label><input type="text" id="cfgServerKey" class="ltr" style="direction:ltr;text-align:left;" placeholder="אותו API_KEY שהגדרת ב-Railway"></div>
+  <div class="mf"><label>סוכנים</label>
+    <div class="ag-head"><span>שם</span><span>מזהה חשבון</span><span>טוקן (אופציונלי)</span><span></span></div>
+    <div class="ag-ed" id="agentsEditor"></div>
+    <button class="btn sm ghost" id="btnAddAgent">+ הוסף סוכן</button>
+  </div>
+  <div class="m-act"><button class="btn primary" id="btnSaveCfg">שמור והתחבר</button><button class="btn" id="btnCancelCfg">ביטול</button><div style="flex:1"></div><button class="btn ghost" id="btnDemo">חזרה לדמו</button></div>
+</div></div>
 
 <script>
 "use strict";
-/* =========================================================
-   Ads Command — single-file dashboard + optimization engine
-   ========================================================= */
+const ICONS={
+  grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  inbox:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5 5h14l3 7v5a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-5z"/>',
+  activity:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+  users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
+  sliders:'<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+  refresh:'<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
+  pause:'<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>',
+  trend:'<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
+  down:'<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>',
+  brush:'<path d="M18.37 2.63 14 7l-1.5-1.5a2.12 2.12 0 0 1 3-3z"/><path d="M9 8c-2 2-3 5-3 8 0 1-1 2-2 2-1.5 0-2-1.5-2-3 0-3 2-6 4-8"/>',
+  plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  trash:'<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  ext:'<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
+  check:'<polyline points="20 6 9 17 4 12"/>',
+};
+function svg(name,cls){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${cls?`class="${cls}"`:""}>${ICONS[name]||""}</svg>`;}
+function actionIconName(t){return t==="scale"?"trend":t==="budget"?"down":t==="creative"?"brush":"pause";}
 
-const LS_KEY="meta-agents-dash-v1";       // keep same key → preserves prior config
-const LS_AUTH="ads-command-auth-v1";
+const LS_KEY="meta-agents-dash-v1", LS_AUTH="ads-command-auth-v1";
 const mem={};
-function lsGet(k){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):null; }catch(e){ return mem[k]||null; } }
-function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){ mem[k]=v; } }
-
+function lsGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return mem[k]||null;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){mem[k]=v;}}
 const CUR={ILS:"₪",USD:"$",EUR:"€",GBP:"£"};
 
 let config=lsGet(LS_KEY);
-let state={ mode:"demo", agents:[], fetchedAt:null, range:"7", currency:"ILS",
-  sortKey:"spend", sortDir:-1, view:"actions", refreshTimer:null, analysisLoaded:false, analysisLevel:"ad",
-  doneActions:new Set((lsGet("ads-command-actions-done")||[])) };
+let state={mode:"demo",agents:[],fetchedAt:null,range:"7",currency:"ILS",sortKey:"spend",sortDir:-1,
+  view:"overview",refreshTimer:null,analysisLoaded:false,analysisLevel:"ad",
+  doneActions:new Set(lsGet("ads-command-actions-done")||[]),loadErr:null,server:{connected:false,status:null,config:null}};
 
-/* ---------------- auth ---------------- */
-async function sha256(str){
-  try{
-    const buf=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
-  }catch(e){
-    // fallback (non-secure context): simple hash — weaker but functional as a gate
-    let h=5381; for(let i=0;i<str.length;i++) h=((h<<5)+h+str.charCodeAt(i))>>>0;
-    return "fb"+h.toString(16);
-  }
-}
-function getAuth(){ return lsGet(LS_AUTH); }
-function isFirstRun(){ return !getAuth(); }
+async function sha256(s){try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");}catch(e){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))>>>0;return"fb"+h.toString(16);}}
+function getAuth(){return lsGet(LS_AUTH);} function isFirstRun(){return !getAuth();}
+function setupLoginUI(){const f=isFirstRun();document.getElementById("loginTitle").textContent=f?"הגדרת מנהל":"כניסת מנהל";document.getElementById("loginSub").textContent=f?"צור שם משתמש וסיסמה":"התחבר כדי לגשת למערכת";document.getElementById("liConfirmWrap").style.display=f?"block":"none";document.getElementById("loginBtn").textContent=f?"צור חשבון והתחבר":"התחבר";document.getElementById("loginFoot").textContent=f?"נשמר מוצפן בדפדפן הזה. שער גישה מקומי, לא אבטחת שרת.":"";document.getElementById("liUser").value=f?"":(getAuth()?.user||"");document.getElementById("loginErr").textContent="";}
+async function handleLogin(){const err=document.getElementById("loginErr");const u=document.getElementById("liUser").value.trim(),p=document.getElementById("liPass").value;if(!u||!p){err.textContent="נא למלא שם משתמש וסיסמה";return;}if(isFirstRun()){const p2=document.getElementById("liPass2").value;if(p.length<4){err.textContent="סיסמה חייבת 4 תווים לפחות";return;}if(p!==p2){err.textContent="הסיסמאות לא תואמות";return;}lsSet(LS_AUTH,{user:u,hash:await sha256(p)});enterApp(u);}else{const a=getAuth();if(u===a.user&&await sha256(p)===a.hash)enterApp(u);else err.textContent="שם משתמש או סיסמה שגויים";}}
+function enterApp(u){document.getElementById("login").style.display="none";document.getElementById("app").style.display="block";document.getElementById("sideUser").textContent=u;boot();}
+function logout(){document.getElementById("app").style.display="none";document.getElementById("login").style.display="flex";setupLoginUI();}
 
-function setupLoginUI(){
-  const first=isFirstRun();
-  document.getElementById("loginTitle").textContent = first? "הגדרת מנהל" : "כניסת מנהל";
-  document.getElementById("loginSub").textContent = first? "צור שם משתמש וסיסמה לכניסה למערכת" : "התחבר כדי לגשת לדשבורד";
-  document.getElementById("liConfirmWrap").style.display = first? "block" : "none";
-  document.getElementById("loginBtn").textContent = first? "צור חשבון והתחבר" : "התחבר";
-  document.getElementById("loginFoot").textContent = first
-    ? "הפרטים נשמרים מוצפנים בדפדפן הזה בלבד. זהו שער גישה מקומי, לא אבטחת שרת."
-    : "שכחת סיסמה? אפשר לאפס דרך ניקוי נתוני האתר בדפדפן.";
-  document.getElementById("loginErr").textContent="";
-  document.getElementById("liUser").value = first? "" : (getAuth()?.user||"");
-  document.getElementById("liPass").value=""; document.getElementById("liPass2").value="";
-}
-async function handleLogin(){
-  const err=document.getElementById("loginErr");
-  const user=document.getElementById("liUser").value.trim();
-  const pass=document.getElementById("liPass").value;
-  if(!user||!pass){ err.textContent="נא למלא שם משתמש וסיסמה"; return; }
-  if(isFirstRun()){
-    const p2=document.getElementById("liPass2").value;
-    if(pass.length<4){ err.textContent="סיסמה חייבת להיות לפחות 4 תווים"; return; }
-    if(pass!==p2){ err.textContent="הסיסמאות לא תואמות"; return; }
-    lsSet(LS_AUTH,{user, hash:await sha256(pass)});
-    enterApp(user);
-  }else{
-    const a=getAuth();
-    if(user===a.user && await sha256(pass)===a.hash){ enterApp(user); }
-    else err.textContent="שם משתמש או סיסמה שגויים";
-  }
-}
-function enterApp(user){
-  document.getElementById("loginScreen").style.display="none";
-  document.getElementById("app").style.display="block";
-  document.getElementById("sideUser").textContent=user;
-  boot();
-}
-function logout(){
-  document.getElementById("app").style.display="none";
-  document.getElementById("loginScreen").style.display="flex";
-  setupLoginUI();
-}
+function serverKey(){return (config&&config.serverKey)||"";}
+async function api(path,{method="GET",body}={}){const opt={method,headers:{"x-api-key":serverKey()}};if(body){opt.headers["Content-Type"]="application/json";opt.body=JSON.stringify(body);}const res=await fetch("/api"+path,opt);if(!res.ok)throw new Error("server "+res.status);return res.json();}
+async function probeServer(){try{const st=await api("/status");const cfg=await api("/config");state.server={connected:true,status:st,config:cfg};}catch(e){state.server={connected:false,status:null,config:null};}}
 
-/* ---------------- date helpers ---------------- */
-function isoLocal(d){ const p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
-function todayLocal(){ const d=new Date(); return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
-function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
-function ddmm(iso){ return iso.slice(8,10)+"/"+iso.slice(5,7); }
-function rangeDates(r){
-  const t=todayLocal();
-  if(r==="today") return {since:isoLocal(t),until:isoLocal(t),days:1};
-  if(r==="yesterday"){ const y=addDays(t,-1); return {since:isoLocal(y),until:isoLocal(y),days:1}; }
-  const n=parseInt(r,10); return {since:isoLocal(addDays(t,-(n-1))),until:isoLocal(t),days:n};
-}
-function prevRangeDates(r){ const c=rangeDates(r); const s=new Date(c.since); return {since:isoLocal(addDays(s,-c.days)),until:isoLocal(addDays(s,-1)),days:c.days}; }
+function isoLocal(d){const p=n=>String(n).padStart(2,"0");return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;}
+function todayLocal(){const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
+function ddmm(iso){return iso.slice(8,10)+"/"+iso.slice(5,7);}
+function rangeDates(r){const t=todayLocal();if(r==="today")return{since:isoLocal(t),until:isoLocal(t),days:1};if(r==="yesterday"){const y=addDays(t,-1);return{since:isoLocal(y),until:isoLocal(y),days:1};}const n=parseInt(r,10);return{since:isoLocal(addDays(t,-(n-1))),until:isoLocal(t),days:n};}
+function prevRangeDates(r){const c=rangeDates(r);const s=new Date(c.since);return{since:isoLocal(addDays(s,-c.days)),until:isoLocal(addDays(s,-1)),days:c.days};}
+function fmtNum(v){return Math.round(v).toLocaleString("he-IL");}
+function money(v,c){return(CUR[c]||c||"")+Math.round(v).toLocaleString("he-IL");}
+function money2(v,c){return(CUR[c]||c||"")+(v>=100?Math.round(v).toLocaleString("he-IL"):v.toFixed(1));}
+function pct(v){return(v*100).toFixed(v<0.1?2:1)+"%";}
+function normalizeAccount(raw){const s=String(raw||"").trim();const m=s.match(/act[_=]?(\d{4,})/i)||s.match(/(\d{6,})/);return"act_"+(m?m[1]:s.replace(/\D/g,""));}
+function el(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;}
+function cssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
 
-/* ---------------- formatting ---------------- */
-function fmtNum(v){ return Math.round(v).toLocaleString("he-IL"); }
-function money(v,c){ return (CUR[c]||c||"")+Math.round(v).toLocaleString("he-IL"); }
-function money2(v,c){ return (CUR[c]||c||"")+(v>=100?Math.round(v).toLocaleString("he-IL"):v.toFixed(1)); }
-function pct(v){ return (v*100).toFixed(v<0.1?2:1)+"%"; }
-
-/* ---------------- account normalize ---------------- */
-function normalizeAccount(raw){
-  const s=String(raw||"").trim();
-  const m=s.match(/act[_=]?(\d{4,})/i)||s.match(/(\d{6,})/);
-  return "act_"+(m?m[1]:s.replace(/[^0-9]/g,""));
-}
-
-/* ================= DEMO DATA ================= */
-function seeded(seed){ let s=seed; return ()=>{ s=(s*9301+49297)%233280; return s/233280; }; }
+function seeded(seed){let s=seed;return()=>{s=(s*9301+49297)%233280;return s/233280;};}
 const DEMO_NAMES=["דניאל","יוסי","מאיה","אבי","נועה","רון","שירה","עומר","טל","ליאור"];
 const CAMP_THEMES=["לידים - קהל רחב","ריטרגטינג","לוקאלייק 1%","קמפיין חג","הצעה מיוחדת"];
 const ADSET_NAMES=["קהל רחב 25-45","לוקאלייק 1%","ריטרגטינג 7 ימים","מתעניינים","גברים 30-50","נשים 25-40","Advantage+ קהל","קהל שמור"];
 const AD_NAMES=["וידאו UGC גרסה A","וידאו UGC גרסה B","תמונה - הצעה","קרוסלה מוצרים","וידאו הוק חדש","סטטי - עדות לקוח","וידאו הדגמה","באנר מבצע"];
-function buildAdMetrics(rnd,base){
-  const quality=rnd();                                   // 0..1 lower=worse creative
-  const spend=(base*(0.25+rnd()*0.7))*7;
-  const ctr=0.004+quality*0.018;                         // 0.4%–2.2% link CTR
-  const freq=1.1+(1-quality)*2.8+rnd()*0.7;              // fatigue when low quality
-  const cpm=(14+(1-quality)*46)+rnd()*10;
-  const impressions=Math.max(400,Math.round(spend/cpm*1000));
-  const clicks=Math.round(impressions*ctr);
-  let leads=Math.max(0,Math.round(clicks*(0.06+quality*0.12)));
-  if(rnd()<0.12) leads=0;
-  const cpl=leads>0?spend/leads:null;
-  const trend=[]; let tc=(cpl||(25+rnd()*40)); const rising=rnd()<0.4;
-  for(let k=0;k<6;k++){ tc=tc*(rising?(1+0.06+rnd()*0.05):(0.98+rnd()*0.04)); trend.push(Math.round(tc)); }
-  return {spend:Math.round(spend),leads,impressions,clicks,reach:Math.round(impressions/freq),frequency:freq,ctr,cpm,cpl,cplTrend:trend};
-}
-function buildDemo(){
-  const rnd=seeded(7); const t=todayLocal();
-  return DEMO_NAMES.map((name,i)=>{
-    const onAir=i!==3 && i!==8;
-    const base=180+rnd()*450, cplBase=25+rnd()*45;
-    const daily=[];
-    for(let d=29;d>=0;d--){
-      const dd=addDays(t,-d), dow=dd.getDay(), wk=(dow===5||dow===6)?0.72:1;
-      let spend=onAir? base*wk*(0.75+rnd()*0.5) : (d>10? base*wk*(0.7+rnd()*0.5):0);
-      if(d===0) spend*=(new Date().getHours()/24)+0.15;
-      const leads=spend>0?Math.max(0,Math.round(spend/(cplBase*(0.8+rnd()*0.4)))):0;
-      daily.push({date:isoLocal(dd),spend:Math.round(spend*100)/100,leads});
-    }
-    // campaigns → adsets → one ad each
-    const nCamp=onAir?1+Math.floor(rnd()*2):1;
-    const camps=[]; const ads=[];
-    for(let c=0;c<nCamp;c++){
-      const campName=CAMP_THEMES[(i+c)%CAMP_THEMES.length];
-      const active=onAir && !(c===nCamp-1 && rnd()<0.25);
-      const nAds=active? (4+Math.floor(rnd()*5)) : 1;   // 4-8 adsets(=ads) per active campaign
-      let cSpend=0,cLeads=0,cImp=0,cClicks=0,cReach=0;
-      for(let s=0;s<nAds;s++){
-        const m=buildAdMetrics(rnd,base);
-        const adsetName=ADSET_NAMES[(s+i)%ADSET_NAMES.length];
-        const adName=AD_NAMES[(s+c)%AD_NAMES.length];
-        ads.push({ id:"ad"+i+c+s, adName, adsetId:"as"+i+c+s, adsetName, campaignName:campName, campaignId:"c"+i+c,
-          status:active?"ACTIVE":"PAUSED", ...m });
-        cSpend+=m.spend; cLeads+=m.leads; cImp+=m.impressions; cClicks+=m.clicks; cReach+=m.reach;
-      }
-      const cFreq=cReach>0?cImp/cReach:1.5;
-      camps.push({ id:"c"+i+c, name:campName, status:active?"ACTIVE":"PAUSED",
-        spend:cSpend, leads:cLeads, impressions:cImp, clicks:cClicks, reach:cReach, adsets:nAds,
-        frequency:cFreq, ctr:cImp>0?cClicks/cImp:0, cpm:cImp>0?cSpend/cImp*1000:0, cpl:cLeads>0?cSpend/cLeads:null,
-        cplTrend:[] });
-    }
-    return { name, account:"act_demo"+(i+1), currency:"ILS",
-      activeCampaigns:camps.filter(c=>c.status==="ACTIVE").length,
-      campaignNames:camps.map(c=>c.name), daily, campaigns:camps, ads, error:null };
-  });
-}
+function buildAdMetrics(rnd,base){const q=rnd();const spend=(base*(0.25+rnd()*0.7))*7;const ctr=0.004+q*0.018;const freq=1.1+(1-q)*2.8+rnd()*0.7;const cpm=(14+(1-q)*46)+rnd()*10;const impressions=Math.max(400,Math.round(spend/cpm*1000));const clicks=Math.round(impressions*ctr);let leads=Math.max(0,Math.round(clicks*(0.06+q*0.12)));if(rnd()<0.12)leads=0;const cpl=leads>0?spend/leads:null;const trend=[];let tc=(cpl||(25+rnd()*40));const rising=rnd()<0.4;for(let k=0;k<6;k++){tc=tc*(rising?(1+0.06+rnd()*0.05):(0.98+rnd()*0.04));trend.push(Math.round(tc));}return{spend:Math.round(spend),leads,impressions,clicks,reach:Math.round(impressions/freq),frequency:freq,ctr,cpm,cpl,cplTrend:trend};}
+function buildDemo(){const rnd=seeded(7),t=todayLocal();return DEMO_NAMES.map((name,i)=>{const onAir=i!==3&&i!==8;const base=180+rnd()*450,cplBase=25+rnd()*45;const daily=[];for(let d=29;d>=0;d--){const dd=addDays(t,-d),dow=dd.getDay(),wk=(dow===5||dow===6)?0.72:1;let spend=onAir?base*wk*(0.75+rnd()*0.5):(d>10?base*wk*(0.7+rnd()*0.5):0);if(d===0)spend*=(new Date().getHours()/24)+0.15;const leads=spend>0?Math.max(0,Math.round(spend/(cplBase*(0.8+rnd()*0.4)))):0;daily.push({date:isoLocal(dd),spend:Math.round(spend*100)/100,leads});}const nCamp=onAir?1+Math.floor(rnd()*2):1;const camps=[],ads=[];for(let c=0;c<nCamp;c++){const campName=CAMP_THEMES[(i+c)%CAMP_THEMES.length];const active=onAir&&!(c===nCamp-1&&rnd()<0.25);const nAds=active?(4+Math.floor(rnd()*5)):1;let cS=0,cL=0,cI=0,cC=0,cR=0;for(let s=0;s<nAds;s++){const m=buildAdMetrics(rnd,base);ads.push({id:"ad"+i+c+s,adName:AD_NAMES[(s+c)%AD_NAMES.length],adsetId:"as"+i+c+s,adsetName:ADSET_NAMES[(s+i)%ADSET_NAMES.length],campaignName:campName,campaignId:"c"+i+c,status:active?"ACTIVE":"PAUSED",...m});cS+=m.spend;cL+=m.leads;cI+=m.impressions;cC+=m.clicks;cR+=m.reach;}const cFreq=cR>0?cI/cR:1.5;camps.push({id:"c"+i+c,name:campName,status:active?"ACTIVE":"PAUSED",spend:cS,leads:cL,impressions:cI,clicks:cC,reach:cR,adsets:nAds,frequency:cFreq,ctr:cI>0?cC/cI:0,cpm:cI>0?cS/cI*1000:0,cpl:cL>0?cS/cL:null,cplTrend:[]});}return{name,account:"act_demo"+(i+1),currency:"ILS",activeCampaigns:camps.filter(c=>c.status==="ACTIVE").length,campaignNames:camps.map(c=>c.name),daily,campaigns:camps,ads,error:null};});}
 
-/* ================= META API ================= */
-function leadFrom(actions,mode,custom){
-  if(!actions||!actions.length) return 0;
-  const g=t=>{ const x=actions.find(a=>a.action_type===t); return x?parseFloat(x.value):null; };
-  if(mode==="pixel") return g("offsite_conversion.fb_pixel_lead")??0;
-  if(mode==="custom"&&custom) return g(custom)??0;
-  return g("lead")??g("offsite_conversion.fb_pixel_lead")??g("onsite_conversion.lead_grouped")??0;
-}
-async function graphGET(path,params,token,ver){
-  const qs=new URLSearchParams({...params, access_token:token});
-  const res=await fetch(`https://graph.facebook.com/${ver}/${path}?${qs}`);
-  const j=await res.json();
-  if(j.error){
-    const e=j.error; let m=e.message||"שגיאה";
-    if(e.code===190) m="הטוקן פג תוקף או לא תקין — הפק טוקן חדש";
-    else if(e.code===100&&/account/i.test(m)) m="מזהה חשבון שגוי או אין הרשאה";
-    else if(e.code===10||e.code===200) m="אין הרשאה לחשבון — ודא שהמשתמש נוסף כ-Analyst";
-    else if(e.code===17||e.code===80004) m="הגעת למגבלת קריאות — המתן דקות ונסה שוב";
-    throw new Error(m);
-  }
-  return j;
-}
-async function fetchAgentLive(agent,cfg){
-  const token=(agent.token&&agent.token.trim())||cfg.token;
-  const acct=normalizeAccount(agent.account);
-  const t=todayLocal(), since=isoLocal(addDays(t,-29)), until=isoLocal(t);
-  const [ins,camps]=await Promise.all([
-    graphGET(`${acct}/insights`,{fields:"spend,actions,account_currency",time_increment:"1",time_range:JSON.stringify({since,until}),limit:"200"},token,cfg.apiVer),
-    graphGET(`${acct}/campaigns`,{fields:"name,effective_status",effective_status:'["ACTIVE"]',limit:"500"},token,cfg.apiVer),
-  ]);
-  const map={}; let currency="ILS";
-  (ins.data||[]).forEach(r=>{ currency=r.account_currency||currency; map[r.date_start]={spend:parseFloat(r.spend||0),leads:leadFrom(r.actions,cfg.leadMode,cfg.leadCustom)}; });
-  const daily=[]; for(let d=29;d>=0;d--){ const date=isoLocal(addDays(t,-d)); daily.push({date,spend:map[date]?.spend||0,leads:map[date]?.leads||0}); }
-  return { name:agent.name, account:acct, token:agent.token, currency,
-    activeCampaigns:(camps.data||[]).length, campaignNames:(camps.data||[]).map(c=>c.name),
-    daily, campaigns:null, error:null };
-}
-// Ad-level detail for the analysis view (fetched on demand)
-async function fetchAdDetail(agent,cfg,days){
-  const token=(agent.token&&agent.token.trim())||cfg.token;
-  const acct=normalizeAccount(agent.account);
-  const t=todayLocal(), since=isoLocal(addDays(t,-(days-1))), until=isoLocal(t);
-  const ins=await graphGET(`${acct}/insights`,{
-    level:"ad",
-    fields:"ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,spend,actions,impressions,clicks,reach,frequency,cpm,inline_link_clicks",
-    time_increment:"1", time_range:JSON.stringify({since,until}), limit:"500",
-  },token,cfg.apiVer);
-  const g={};
-  (ins.data||[]).forEach(r=>{
-    const id=r.ad_id;
-    if(!g[id]) g[id]={id,adName:r.ad_name,adsetId:r.adset_id,adsetName:r.adset_name,campaignName:r.campaign_name,campaignId:r.campaign_id,
-      status:"ACTIVE",spend:0,leads:0,impressions:0,clicks:0,linkClicks:0,reachMax:0,freqMax:0,days:[]};
-    const o=g[id];
-    const sp=parseFloat(r.spend||0), ld=leadFrom(r.actions,cfg.leadMode,cfg.leadCustom);
-    o.spend+=sp; o.leads+=ld; o.impressions+=parseInt(r.impressions||0); o.clicks+=parseInt(r.clicks||0);
-    o.linkClicks+=parseInt(r.inline_link_clicks||0); o.reachMax=Math.max(o.reachMax,parseInt(r.reach||0));
-    o.freqMax=Math.max(o.freqMax,parseFloat(r.frequency||0));
-    o.days.push({date:r.date_start,spend:sp,leads:ld});
-  });
-  const ads=Object.values(g).map(o=>{
-    const linkC=o.linkClicks||o.clicks;
-    const ctr=o.impressions>0? linkC/o.impressions : 0;
-    const cpm=o.impressions>0? o.spend/o.impressions*1000 : 0;
-    const cpl=o.leads>0? o.spend/o.leads : null;
-    const frequency=o.reachMax>0? o.impressions/o.reachMax : o.freqMax;
-    o.days.sort((a,b)=>a.date<b.date?-1:1);
-    const trend=o.days.map(d=>d.leads>0?d.spend/d.leads:null).filter(x=>x!=null);
-    return {id:o.id,adName:o.adName,adsetId:o.adsetId,adsetName:o.adsetName,campaignName:o.campaignName,campaignId:o.campaignId,
-      status:o.status,spend:o.spend,leads:o.leads,impressions:o.impressions,clicks:linkC,reach:o.reachMax,
-      frequency,ctr,cpm,cpl,cplTrend:trend};
-  });
-  // derive campaigns for counts/rollup
-  const cmap={};
-  ads.forEach(a=>{ const k=a.campaignId||a.campaignName; if(!cmap[k]) cmap[k]={id:k,name:a.campaignName,spend:0,leads:0,impressions:0,clicks:0,reach:0,adsets:0,status:"ACTIVE"};
-    const c=cmap[k]; c.spend+=a.spend; c.leads+=a.leads; c.impressions+=a.impressions; c.clicks+=a.clicks; c.reach+=a.reach; c.adsets++; });
-  const campaigns=Object.values(cmap).map(c=>({...c,frequency:c.reach>0?c.impressions/c.reach:1.5,ctr:c.impressions>0?c.clicks/c.impressions:0,cpm:c.impressions>0?c.spend/c.impressions*1000:0,cpl:c.leads>0?c.spend/c.leads:null,cplTrend:[]}));
-  return {ads,campaigns};
-}
+function leadFrom(actions,mode,custom){if(!actions||!actions.length)return 0;const g=t=>{const x=actions.find(a=>a.action_type===t);return x?parseFloat(x.value):null;};if(mode==="pixel")return g("offsite_conversion.fb_pixel_lead")??0;if(mode==="custom"&&custom)return g(custom)??0;return g("lead")??g("offsite_conversion.fb_pixel_lead")??g("onsite_conversion.lead_grouped")??0;}
+async function graphGET(path,params,token,ver){const qs=new URLSearchParams({...params,access_token:token});const res=await fetch(`https://graph.facebook.com/${ver}/${path}?${qs}`);const j=await res.json();if(j.error){const e=j.error;let m=e.message||"שגיאה";if(e.code===190)m="הטוקן פג תוקף — הפק חדש";else if(e.code===100&&/account/i.test(m))m="מזהה חשבון שגוי או אין הרשאה";else if(e.code===10||e.code===200)m="אין הרשאה לחשבון — ודא Analyst";else if(e.code===17||e.code===80004)m="מגבלת קריאות — המתן ונסה שוב";throw new Error(m);}return j;}
+async function graphPOST(path,params,token,ver){const body=new URLSearchParams({...params,access_token:token});const res=await fetch(`https://graph.facebook.com/${ver}/${path}`,{method:"POST",body});const j=await res.json();if(j.error){const e=j.error;let m=e.message||"שגיאה";if(e.code===190)m="הטוקן פג תוקף";else if(e.code===200||e.code===10||e.code===294||e.code===3)m="לטוקן אין הרשאת כתיבה (ads_management) — שדרג את הטוקן";throw new Error(m);}return j;}
+async function fetchAgentLive(agent,cfg){const token=(agent.token&&agent.token.trim())||cfg.token;const acct=normalizeAccount(agent.account);const t=todayLocal(),since=isoLocal(addDays(t,-29)),until=isoLocal(t);const[ins,camps]=await Promise.all([graphGET(`${acct}/insights`,{fields:"spend,actions,account_currency",time_increment:"1",time_range:JSON.stringify({since,until}),limit:"200"},token,cfg.apiVer),graphGET(`${acct}/campaigns`,{fields:"name,effective_status",effective_status:'["ACTIVE"]',limit:"500"},token,cfg.apiVer)]);const map={};let currency="ILS";(ins.data||[]).forEach(r=>{currency=r.account_currency||currency;map[r.date_start]={spend:parseFloat(r.spend||0),leads:leadFrom(r.actions,cfg.leadMode,cfg.leadCustom)};});const daily=[];for(let d=29;d>=0;d--){const date=isoLocal(addDays(t,-d));daily.push({date,spend:map[date]?.spend||0,leads:map[date]?.leads||0});}return{name:agent.name,account:acct,token:agent.token,currency,activeCampaigns:(camps.data||[]).length,campaignNames:(camps.data||[]).map(c=>c.name),daily,campaigns:null,ads:null,error:null};}
+async function fetchAdDetail(agent,cfg,days){const token=(agent.token&&agent.token.trim())||cfg.token;const acct=normalizeAccount(agent.account);const t=todayLocal(),since=isoLocal(addDays(t,-(days-1))),until=isoLocal(t);const ins=await graphGET(`${acct}/insights`,{level:"ad",fields:"ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,spend,actions,impressions,clicks,reach,frequency,cpm,inline_link_clicks",time_increment:"1",time_range:JSON.stringify({since,until}),limit:"500"},token,cfg.apiVer);const g={};(ins.data||[]).forEach(r=>{const id=r.ad_id;if(!g[id])g[id]={id,adName:r.ad_name,adsetId:r.adset_id,adsetName:r.adset_name,campaignName:r.campaign_name,campaignId:r.campaign_id,status:"ACTIVE",spend:0,leads:0,impressions:0,clicks:0,linkClicks:0,reachMax:0,days:[]};const o=g[id];const sp=parseFloat(r.spend||0),ld=leadFrom(r.actions,cfg.leadMode,cfg.leadCustom);o.spend+=sp;o.leads+=ld;o.impressions+=parseInt(r.impressions||0);o.clicks+=parseInt(r.clicks||0);o.linkClicks+=parseInt(r.inline_link_clicks||0);o.reachMax=Math.max(o.reachMax,parseInt(r.reach||0));o.days.push({date:r.date_start,spend:sp,leads:ld});});const ads=Object.values(g).map(o=>{const linkC=o.linkClicks||o.clicks;o.days.sort((a,b)=>a.date<b.date?-1:1);const trend=o.days.map(d=>d.leads>0?d.spend/d.leads:null).filter(x=>x!=null);return{id:o.id,adName:o.adName,adsetId:o.adsetId,adsetName:o.adsetName,campaignName:o.campaignName,campaignId:o.campaignId,status:o.status,spend:o.spend,leads:o.leads,impressions:o.impressions,clicks:linkC,reach:o.reachMax,frequency:o.reachMax>0?o.impressions/o.reachMax:0,ctr:o.impressions>0?linkC/o.impressions:0,cpm:o.impressions>0?o.spend/o.impressions*1000:0,cpl:o.leads>0?o.spend/o.leads:null,cplTrend:trend};});const cmap={};ads.forEach(a=>{const k=a.campaignId||a.campaignName;if(!cmap[k])cmap[k]={id:k,name:a.campaignName,spend:0,leads:0,impressions:0,clicks:0,reach:0,adsets:0,status:"ACTIVE"};const c=cmap[k];c.spend+=a.spend;c.leads+=a.leads;c.impressions+=a.impressions;c.clicks+=a.clicks;c.reach+=a.reach;c.adsets++;});const campaigns=Object.values(cmap).map(c=>({...c,frequency:c.reach>0?c.impressions/c.reach:1.5,ctr:c.impressions>0?c.clicks/c.impressions:0,cpm:c.impressions>0?c.spend/c.impressions*1000:0,cpl:c.leads>0?c.spend/c.leads:null,cplTrend:[]}));return{ads,campaigns};}
 
-/* ================= FETCH ORCHESTRATION ================= */
-async function refreshData(){
-  const dim=document.querySelectorAll(".view");
-  dim.forEach(v=>v.classList.add("loading-dim"));
-  try{
-    if(state.mode==="demo"){ await new Promise(r=>setTimeout(r,200)); state.agents=buildDemo(); state.currency="ILS"; }
-    else{
-      const res=await Promise.all(config.agents.map(async a=>{
-        try{ return await fetchAgentLive(a,config); }
-        catch(err){ return {name:a.name,account:a.account,token:a.token,currency:null,activeCampaigns:0,campaignNames:[],daily:[],campaigns:null,error:err.message}; }
-      }));
-      state.agents=res;
-      const wc=res.find(r=>r.currency);
-      state.currency=(config.currency&&config.currency!=="auto")?config.currency:(wc?wc.currency:"ILS");
-    }
-    state.fetchedAt=new Date();
-    state.analysisLoaded = state.mode==="demo"; // demo has campaigns/ads inline
-    renderAll();
-    updateActionBadge();
-    if(state.view==="analysis") renderAnalysis();
-    if(state.view==="actions") renderActions();
-  } finally { dim.forEach(v=>v.classList.remove("loading-dim")); }
-}
+async function refreshData(){document.querySelectorAll(".view").forEach(v=>v.classList.add("loading-dim"));try{if(state.mode==="demo"){await new Promise(r=>setTimeout(r,180));state.agents=buildDemo();state.currency="ILS";}else{const res=await Promise.all(config.agents.map(async a=>{try{return await fetchAgentLive(a,config);}catch(err){return{name:a.name,account:a.account,token:a.token,currency:null,activeCampaigns:0,campaignNames:[],daily:[],campaigns:null,ads:null,error:err.message};}}));state.agents=res;const wc=res.find(r=>r.currency);state.currency=(config.currency&&config.currency!=="auto")?config.currency:(wc?wc.currency:"ILS");}state.fetchedAt=new Date();state.analysisLoaded=state.mode==="demo";renderOverview();updateActionBadge();if(state.view==="actions")renderActions();if(state.view==="analysis")renderAnalysis();if(state.view==="agents")renderAgentsView();probeServer();}finally{document.querySelectorAll(".view").forEach(v=>v.classList.remove("loading-dim"));}}
 
-/* ================= AGGREGATION ================= */
-function sliceAgent(a,since,until){ const rows=a.daily.filter(r=>r.date>=since&&r.date<=until);
-  return {spend:rows.reduce((s,r)=>s+r.spend,0),leads:rows.reduce((s,r)=>s+r.leads,0)}; }
-function aggregate(since,until){
-  const per=state.agents.map(a=>{ const s=sliceAgent(a,since,until); return {...a,spend:s.spend,leads:s.leads,cpl:s.leads>0?s.spend/s.leads:null}; });
-  return { per, totSpend:per.reduce((s,a)=>s+a.spend,0), totLeads:per.reduce((s,a)=>s+a.leads,0),
-    onAir:per.filter(a=>a.activeCampaigns>0).length, totCampaigns:per.reduce((s,a)=>s+a.activeCampaigns,0),
-    cpl:(()=>{const l=per.reduce((s,a)=>s+a.leads,0),sp=per.reduce((s,a)=>s+a.spend,0);return l>0?sp/l:null;})() }; }
-function dailyTotals(since,until){
-  const map={},dates=[];
-  state.agents.forEach(a=>a.daily.forEach(r=>{ if(r.date<since||r.date>until)return;
-    if(!map[r.date]){map[r.date]={spend:0,leads:0};dates.push(r.date);} map[r.date].spend+=r.spend; map[r.date].leads+=r.leads; }));
-  dates.sort(); return dates.map(d=>({date:d,spend:map[d].spend,leads:map[d].leads}));
-}
+function sliceAgent(a,since,until){const rows=a.daily.filter(r=>r.date>=since&&r.date<=until);return{spend:rows.reduce((s,r)=>s+r.spend,0),leads:rows.reduce((s,r)=>s+r.leads,0)};}
+function aggregate(since,until){const per=state.agents.map(a=>{const s=sliceAgent(a,since,until);return{...a,spend:s.spend,leads:s.leads,cpl:s.leads>0?s.spend/s.leads:null};});return{per,totSpend:per.reduce((s,a)=>s+a.spend,0),totLeads:per.reduce((s,a)=>s+a.leads,0),onAir:per.filter(a=>a.activeCampaigns>0).length,totCampaigns:per.reduce((s,a)=>s+a.activeCampaigns,0),cpl:(()=>{const l=per.reduce((s,a)=>s+a.leads,0),sp=per.reduce((s,a)=>s+a.spend,0);return l>0?sp/l:null;})()};}
+function dailyTotals(since,until){const map={},dates=[];state.agents.forEach(a=>a.daily.forEach(r=>{if(r.date<since||r.date>until)return;if(!map[r.date]){map[r.date]={spend:0,leads:0};dates.push(r.date);}map[r.date].spend+=r.spend;map[r.date].leads+=r.leads;}));dates.sort();return dates.map(d=>({date:d,spend:map[d].spend,leads:map[d].leads}));}
 
-/* ================= helpers ================= */
-function el(t,c,x){ const e=document.createElement(t); if(c)e.className=c; if(x!=null)e.textContent=x; return e; }
-function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function deltaPill(cur,prev,goodUp,vs){if(prev==null||prev===0)return null;const p=(cur-prev)/prev*100;if(!isFinite(p))return null;const up=p>=0;const cls=goodUp==null?"c-mut":(goodUp?(up?"c-good":"c-crit"):(up?"c-crit":"c-good"));const e=el("span","chip "+cls);e.innerHTML=svg(up?"trend":"down")+`<span>${Math.abs(p).toFixed(0)}% ${vs}</span>`;const s=e.querySelector("svg");if(s)s.style.cssText="width:12px;height:12px";return e;}
+function kpiTile(label,build,delta){const c=el("div","kpi");c.appendChild(el("div","kl",label));const v=el("div","kv");build(v);c.appendChild(v);const d=el("div","kd");if(delta)d.appendChild(delta);c.appendChild(d);return c;}
+function renderKPIs(agg,prev,vs){const row=document.getElementById("kpiRow");row.replaceChildren();const c=state.currency,n=state.agents.length;row.appendChild(kpiTile("סוכנים באוויר",v=>{v.appendChild(document.createTextNode(agg.onAir));v.appendChild(el("span","u"," / "+n));}));row.appendChild(kpiTile("קמפיינים פעילים",v=>{v.textContent=fmtNum(agg.totCampaigns);}));row.appendChild(kpiTile("הוצאה",v=>{v.textContent=money(agg.totSpend,c);},prev?deltaPill(agg.totSpend,prev.totSpend,null,vs):null));row.appendChild(kpiTile("לידים",v=>{v.textContent=fmtNum(agg.totLeads);},prev?deltaPill(agg.totLeads,prev.totLeads,true,vs):null));row.appendChild(kpiTile("עלות לליד",v=>{v.textContent=agg.cpl!=null?money2(agg.cpl,c):"—";},(prev&&agg.cpl!=null&&prev.cpl!=null)?deltaPill(agg.cpl,prev.cpl,false,vs):null));}
 
-/* ================= KPIs ================= */
-function deltaPill(cur,prev,goodUp,vs){
-  if(prev==null||prev===0) return null;
-  const p=(cur-prev)/prev*100; if(!isFinite(p)) return null;
-  const up=p>=0; const cls=goodUp==null?"neutral":(goodUp?(up?"up":"down"):(up?"down":"up"));
-  const e=el("span","pill "+cls); e.textContent=(up?"↑ ":"↓ ")+Math.abs(p).toFixed(0)+"% "+vs; return e;
-}
-function kpiTile(label,ico,build,delta){
-  const c=el("div","kpi");
-  const top=el("div","k-top"); top.appendChild(el("div","k-label",label)); top.appendChild(el("div","k-ico",ico)); c.appendChild(top);
-  const v=el("div","k-val"); build(v); c.appendChild(v);
-  const d=el("div","k-delta"); if(delta) d.appendChild(delta); c.appendChild(d);
-  return c;
-}
-function renderKPIs(agg,prev,vs){
-  const row=document.getElementById("kpiRow"); row.replaceChildren();
-  const c=state.currency, n=state.agents.length;
-  row.appendChild(kpiTile("סוכנים באוויר","◉",v=>{ v.appendChild(document.createTextNode(agg.onAir)); const u=el("span","u"," / "+n); v.appendChild(u); }));
-  row.appendChild(kpiTile("קמפיינים פעילים","▤",v=>{v.textContent=fmtNum(agg.totCampaigns);}));
-  row.appendChild(kpiTile("הוצאה","₪",v=>{v.textContent=money(agg.totSpend,c);}, prev?deltaPill(agg.totSpend,prev.totSpend,null,vs):null));
-  row.appendChild(kpiTile("לידים","◎",v=>{v.textContent=fmtNum(agg.totLeads);}, prev?deltaPill(agg.totLeads,prev.totLeads,true,vs):null));
-  row.appendChild(kpiTile("עלות לליד","◈",v=>{v.textContent=agg.cpl!=null?money2(agg.cpl,c):"—";}, (prev&&agg.cpl!=null&&prev.cpl!=null)?deltaPill(agg.cpl,prev.cpl,false,vs):null));
-}
-
-/* ================= tooltip ================= */
 const tt=document.getElementById("tooltip");
-function showTT(x,y,title,rows){
-  tt.replaceChildren(); tt.appendChild(el("div","tt-t",title));
-  rows.forEach(r=>{ const l=el("div","tt-r"); const k=el("span","tt-k"); k.style.background=r.color; l.appendChild(k);
-    l.appendChild(el("span","tt-v",r.value)); l.appendChild(el("span","tt-n",r.name)); tt.appendChild(l); });
-  tt.style.display="block"; const rc=tt.getBoundingClientRect();
-  let left=x+14, top=y-10; if(left+rc.width>innerWidth-8) left=x-rc.width-14; if(top+rc.height>innerHeight-8) top=innerHeight-rc.height-8;
-  tt.style.left=left+"px"; tt.style.top=top+"px";
-}
-function hideTT(){ tt.style.display="none"; }
+function showTT(x,y,title,rows){tt.replaceChildren();tt.appendChild(el("div","tt-t",title));rows.forEach(r=>{const l=el("div","tt-r");const k=el("span","tt-k");k.style.background=r.color;l.appendChild(k);l.appendChild(el("span","tt-v",r.value));l.appendChild(el("span","tt-n",r.name));tt.appendChild(l);});tt.style.display="block";const rc=tt.getBoundingClientRect();let left=x+14,top=y-10;if(left+rc.width>innerWidth-8)left=x-rc.width-14;if(top+rc.height>innerHeight-8)top=innerHeight-rc.height-8;tt.style.left=left+"px";tt.style.top=top+"px";}
+function hideTT(){tt.style.display="none";}
+const NS="http://www.w3.org/2000/svg";function sv(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function niceMax(v){if(v<=0)return 1;const e=Math.pow(10,Math.floor(Math.log10(v))),f=v/e;const nf=f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10;return nf*e;}
+function columnChart(id,rows,o){const box=document.getElementById(id);box.replaceChildren();if(!rows.length){box.appendChild(el("div","psub","אין נתונים"));return;}const W=560,H=200,padL=8,padR=48,padT=10,padB=24,plotW=W-padL-padR,plotH=H-padT-padB;const maxV=niceMax(Math.max(...rows.map(r=>r[o.valueKey]),0.0001)),n=rows.length,band=plotW/n,bw=Math.min(20,Math.max(3,band-4));const grid=cssVar("--border"),muted=cssVar("--muted");const s=sv("svg",{viewBox:`0 0 ${W} ${H}`});s.style.direction="ltr";for(let i=1;i<=3;i++){const yv=maxV*i/3,y=padT+plotH-plotH*i/3;s.appendChild(sv("line",{x1:padL,x2:padL+plotW,y1:y,y2:y,stroke:grid,"stroke-width":1}));const tx=sv("text",{x:padL+plotW+6,y:y+4,"font-size":10,fill:muted,"text-anchor":"start"});tx.textContent=o.axisFmt?o.axisFmt(yv):fmtNum(yv);s.appendChild(tx);}const today=isoLocal(todayLocal());rows.forEach((r,i)=>{const v=r[o.valueKey],h=Math.max(v>0?2:0,plotH*(v/maxV)),x=padL+band*i+(band-bw)/2,y=padT+plotH-h,rx=Math.min(3,bw/2);if(h>0){const d=`M ${x} ${padT+plotH} L ${x} ${y+rx} Q ${x} ${y} ${x+rx} ${y} L ${x+bw-rx} ${y} Q ${x+bw} ${y} ${x+bw} ${y+rx} L ${x+bw} ${padT+plotH} Z`;s.appendChild(sv("path",{d,fill:o.color,opacity:r.date===today?1:.85}));}const step=Math.ceil(n/6);if(i%step===0||i===n-1){const tx=sv("text",{x:x+bw/2,y:padT+plotH+16,"font-size":10,fill:muted,"text-anchor":"middle"});tx.textContent=r.date===today?"היום":ddmm(r.date);s.appendChild(tx);}const hit=sv("rect",{x:padL+band*i,y:padT,width:band,height:plotH,fill:"transparent"});hit.addEventListener("pointermove",ev=>{showTT(ev.clientX,ev.clientY,(r.date===today?"היום · ":"")+ddmm(r.date),[{color:o.color,value:o.ttFmt(v),name:o.ttName},...(o.extra?[o.extra(r)]:[])]);hit.setAttribute("fill","rgba(255,255,255,.04)");});hit.addEventListener("pointerleave",()=>{hideTT();hit.setAttribute("fill","transparent");});s.appendChild(hit);});box.appendChild(s);}
+function agentBarChart(id,per){const box=document.getElementById(id);box.replaceChildren();const data=[...per].filter(a=>!a.error).sort((a,b)=>b.spend-a.spend);if(!data.length){box.appendChild(el("div","psub","אין נתונים"));return;}const rowH=32,padT=6,labelW=112,W=820,H=padT*2+rowH*data.length,plotW=W-labelW-8;const maxV=Math.max(...data.map(a=>a.spend),0.0001);const ink=cssVar("--text"),ink2=cssVar("--text-2"),bar=cssVar("--accent"),c=state.currency;const s=sv("svg",{viewBox:`0 0 ${W} ${H}`});s.style.direction="ltr";data.forEach((a,i)=>{const y=padT+rowH*i,bwid=Math.max(a.spend>0?3:0,plotW*(a.spend/maxV)),barH=16,by=y+(rowH-barH)/2,x0=W-labelW;const nm=sv("text",{x:W-6,y:y+rowH/2+4,"font-size":12.5,"font-weight":600,fill:ink,"text-anchor":"end"});nm.textContent=a.name;s.appendChild(nm);if(bwid>0){const rx=4;const d=`M ${x0} ${by} L ${x0-bwid+rx} ${by} Q ${x0-bwid} ${by} ${x0-bwid} ${by+rx} L ${x0-bwid} ${by+barH-rx} Q ${x0-bwid} ${by+barH} ${x0-bwid+rx} ${by+barH} L ${x0} ${by+barH} Z`;s.appendChild(sv("path",{d,fill:bar}));}let lx=x0-bwid-8,lf=ink2;if(lx<90){lx=x0-10;lf="#fff";}const vt=sv("text",{x:lx,y:y+rowH/2+4,"font-size":11,fill:lf,"text-anchor":"end"});vt.textContent=money(a.spend,c)+" · "+fmtNum(a.leads)+" לידים";s.appendChild(vt);const hit=sv("rect",{x:0,y,width:W,height:rowH,fill:"transparent"});hit.addEventListener("pointermove",ev=>{showTT(ev.clientX,ev.clientY,a.name,[{color:bar,value:money(a.spend,c),name:"הוצאה"},{color:cssVar("--accent-2"),value:fmtNum(a.leads),name:"לידים"},{color:cssVar("--muted"),value:a.cpl!=null?money2(a.cpl,c):"—",name:"עלות/ליד"}]);hit.setAttribute("fill","rgba(255,255,255,.03)");});hit.addEventListener("pointerleave",()=>{hideTT();hit.setAttribute("fill","transparent");});s.appendChild(hit);});box.appendChild(s);}
 
-/* ================= charts ================= */
-const NS="http://www.w3.org/2000/svg";
-function sv(t,a){ const e=document.createElementNS(NS,t); for(const k in a) e.setAttribute(k,a[k]); return e; }
-function niceMax(v){ if(v<=0)return 1; const e=Math.pow(10,Math.floor(Math.log10(v))),f=v/e; const nf=f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10; return nf*e; }
+function renderOverview(){const r=rangeDates(state.range),p=prevRangeDates(state.range);const agg=aggregate(r.since,r.until);const earliest=state.agents.length?state.agents.reduce((m,a)=>{const d=a.daily[0]?.date;return(d&&d<m)?d:m;},"9999"):"9999";const prev=(p.since>=earliest)?aggregate(p.since,p.until):null;const vs=state.range==="today"?"מול אתמול":state.range==="yesterday"?"מול שלשום":"מול תקופה קודמת";renderKPIs(agg,prev,vs);const days=dailyTotals(r.since,r.until),c=state.currency;const rt=r.days===1?(state.range==="today"?"היום":"אתמול"):`${r.days} ימים`;const note=r.days===1?" (7 ימים להקשר)":"";document.getElementById("spendSub").textContent=`סה״כ ${money(agg.totSpend,c)} · ${rt}${note}`;document.getElementById("leadsSub").textContent=`סה״כ ${fmtNum(agg.totLeads)} לידים · ${rt}${note}`;const accent=cssVar("--accent"),a2=cssVar("--accent-2");const cd=days.length>1?days:dailyTotals(isoLocal(addDays(new Date(r.since),-6)),r.until);columnChart("spendChart",cd,{valueKey:"spend",color:accent,ttName:"הוצאה",ttFmt:v=>money(v,c),axisFmt:v=>money(v,c),extra:row=>({color:a2,value:fmtNum(row.leads),name:"לידים"})});columnChart("leadsChart",cd,{valueKey:"leads",color:a2,ttName:"לידים",ttFmt:v=>fmtNum(v),axisFmt:v=>fmtNum(v),extra:row=>({color:accent,value:money(row.spend,c),name:"הוצאה"})});agentBarChart("agentChart",agg.per);const lu=document.getElementById("lastUpdated");if(state.fetchedAt)lu.textContent="עודכן "+state.fetchedAt.toLocaleTimeString("he-IL",{hour:"2-digit",minute:"2-digit"});const tag=document.getElementById("modeTag"),txt=document.getElementById("modeTxt");if(state.mode==="live"){tag.className="status-tag st-live";txt.textContent="מחובר ל-Meta";}else{tag.className="status-tag st-demo";txt.textContent="מצב דמו";}}
 
-function columnChart(id,rows,o){
-  const box=document.getElementById(id); box.replaceChildren();
-  if(!rows.length){ box.appendChild(el("div","csub","אין נתונים")); return; }
-  const W=560,H=200,padL=8,padR=48,padT=10,padB=24, plotW=W-padL-padR, plotH=H-padT-padB;
-  const maxV=niceMax(Math.max(...rows.map(r=>r[o.valueKey]),0.0001)), n=rows.length, band=plotW/n, bw=Math.min(22,Math.max(3,band-3));
-  const grid=cssVar("--border"),base=cssVar("--border-strong"),muted=cssVar("--muted");
-  const svg=sv("svg",{viewBox:`0 0 ${W} ${H}`}); svg.style.direction="ltr";
-  for(let i=1;i<=3;i++){ const yv=maxV*i/3,y=padT+plotH-plotH*i/3;
-    svg.appendChild(sv("line",{x1:padL,x2:padL+plotW,y1:y,y2:y,stroke:grid,"stroke-width":1}));
-    const tx=sv("text",{x:padL+plotW+6,y:y+4,"font-size":10,fill:muted,"text-anchor":"start"}); tx.textContent=o.axisFmt?o.axisFmt(yv):fmtNum(yv); svg.appendChild(tx); }
-  svg.appendChild(sv("line",{x1:padL,x2:padL+plotW,y1:padT+plotH,y2:padT+plotH,stroke:base,"stroke-width":1}));
-  const today=isoLocal(todayLocal());
-  rows.forEach((r,i)=>{ const v=r[o.valueKey],h=Math.max(v>0?2:0,plotH*(v/maxV)),x=padL+band*i+(band-bw)/2,y=padT+plotH-h,rx=Math.min(4,bw/2);
-    if(h>0){ const d=`M ${x} ${padT+plotH} L ${x} ${y+rx} Q ${x} ${y} ${x+rx} ${y} L ${x+bw-rx} ${y} Q ${x+bw} ${y} ${x+bw} ${y+rx} L ${x+bw} ${padT+plotH} Z`;
-      svg.appendChild(sv("path",{d,fill:o.color,opacity:r.date===today?1:.9})); }
-    const step=Math.ceil(n/6); if(i%step===0||i===n-1){ const tx=sv("text",{x:x+bw/2,y:padT+plotH+16,"font-size":10,fill:muted,"text-anchor":"middle"}); tx.textContent=r.date===today?"היום":ddmm(r.date); svg.appendChild(tx); }
-    const hit=sv("rect",{x:padL+band*i,y:padT,width:band,height:plotH,fill:"transparent"});
-    hit.addEventListener("pointermove",ev=>{ showTT(ev.clientX,ev.clientY,(r.date===today?"היום · ":"")+ddmm(r.date),
-      [{color:o.color,value:o.ttFmt(v),name:o.ttName}, ...(o.extra?[o.extra(r)]:[])]); hit.setAttribute("fill","rgba(255,255,255,0.05)"); });
-    hit.addEventListener("pointerleave",()=>{ hideTT(); hit.setAttribute("fill","transparent"); });
-    svg.appendChild(hit);
-  });
-  box.appendChild(svg);
-}
+function renderAgentsView(){const r=rangeDates(state.range);const agg=aggregate(r.since,r.until);renderAgentsTable(agg);renderDailyTable(dailyTotals(r.since,r.until));}
+function renderAgentsTable(agg){const table=document.getElementById("agentsTable");table.replaceChildren();const c=state.currency;const cols=[{k:"name",l:"סוכן"},{k:"activeCampaigns",l:"סטטוס",sk:"activeCampaigns"},{k:"activeCampaigns",l:"קמפיינים"},{k:"spend",l:"הוצאה"},{k:"leads",l:"לידים"},{k:"cpl",l:"עלות/ליד"},{k:"share",l:"% הוצאה",sk:"spend"}];const thead=el("thead"),trh=el("tr");cols.forEach((col,idx)=>{const th=el("th",null,col.l+" ");const sk=col.sk||col.k;if(state.sortKey===sk)th.appendChild(el("span",null,state.sortDir<0?"▼":"▲"));if(idx!==1)th.addEventListener("click",()=>{if(state.sortKey===sk)state.sortDir*=-1;else{state.sortKey=sk;state.sortDir=-1;}renderAgentsView();});else th.style.cursor="default";trh.appendChild(th);});thead.appendChild(trh);table.appendChild(thead);const rows=[...agg.per];rows.sort((a,b)=>{const k=state.sortKey;if(k==="name")return -state.sortDir*a.name.localeCompare(b.name,"he");const av=a[k]==null?-Infinity:a[k],bv=b[k]==null?-Infinity:b[k];return state.sortDir*(av-bv);});const tb=el("tbody");rows.forEach(a=>{const tr=el("tr");const t0=el("td");const nm=el("span",null,a.name);nm.style.fontWeight="600";t0.appendChild(nm);tr.appendChild(t0);const ts=el("td"),sc=el("div","status-cell");if(a.error){sc.appendChild(el("span","sdot err"));sc.appendChild(el("span","err-msg",a.error));}else if(a.activeCampaigns>0){sc.appendChild(el("span","sdot on"));sc.appendChild(el("span",null,"באוויר"));}else{sc.appendChild(el("span","sdot off"));sc.appendChild(el("span",null,"כבוי"));}ts.appendChild(sc);tr.appendChild(ts);tr.appendChild(el("td",null,a.error?"—":fmtNum(a.activeCampaigns)));tr.appendChild(el("td",null,a.error?"—":money(a.spend,c)));tr.appendChild(el("td",null,fmtNum(a.leads)));tr.appendChild(el("td",null,(a.error||a.cpl==null)?"—":money2(a.cpl,c)));const tsh=el("td");if(!a.error&&agg.totSpend>0){const pp=a.spend/agg.totSpend*100;const w=el("div","status-cell");const tr2=el("div","mini-track"),f=el("div","mini-fill");f.style.width=pp.toFixed(1)+"%";tr2.appendChild(f);w.appendChild(tr2);w.appendChild(el("span",null,pp.toFixed(0)+"%"));tsh.appendChild(w);}else tsh.textContent="—";tr.appendChild(tsh);tb.appendChild(tr);});const trt=el("tr","total");trt.appendChild(el("td",null,"סה״כ"));trt.appendChild(el("td",null,agg.onAir+" באוויר"));trt.appendChild(el("td",null,fmtNum(agg.totCampaigns)));trt.appendChild(el("td",null,money(agg.totSpend,c)));trt.appendChild(el("td",null,fmtNum(agg.totLeads)));trt.appendChild(el("td",null,agg.cpl!=null?money2(agg.cpl,c):"—"));trt.appendChild(el("td",null,"100%"));tb.appendChild(trt);table.appendChild(tb);}
+function renderDailyTable(days){const table=document.getElementById("dailyTable");table.replaceChildren();const c=state.currency;const thead=el("thead"),trh=el("tr");["תאריך","הוצאה","לידים","עלות/ליד"].forEach(h=>trh.appendChild(el("th",null,h)));thead.appendChild(trh);table.appendChild(thead);const tb=el("tbody");[...days].reverse().forEach(d=>{const tr=el("tr");tr.appendChild(el("td",null,ddmm(d.date)));tr.appendChild(el("td",null,money(d.spend,c)));tr.appendChild(el("td",null,fmtNum(d.leads)));tr.appendChild(el("td",null,d.leads>0?money2(d.spend/d.leads,c):"—"));tb.appendChild(tr);});table.appendChild(tb);}
 
-function agentBarChart(id,per){
-  const box=document.getElementById(id); box.replaceChildren();
-  const data=[...per].filter(a=>!a.error).sort((a,b)=>b.spend-a.spend);
-  if(!data.length){ box.appendChild(el("div","csub","אין נתונים")); return; }
-  const rowH=34,padT=6,labelW=118,W=820,H=padT*2+rowH*data.length, plotW=W-labelW-8;
-  const maxV=Math.max(...data.map(a=>a.spend),0.0001);
-  const ink=cssVar("--text"),ink2=cssVar("--text-2"),bar=cssVar("--primary");
-  const c=state.currency;
-  const svg=sv("svg",{viewBox:`0 0 ${W} ${H}`}); svg.style.direction="ltr";
-  data.forEach((a,i)=>{ const y=padT+rowH*i, bwid=Math.max(a.spend>0?3:0,plotW*(a.spend/maxV)), barH=18, by=y+(rowH-barH)/2, x0=W-labelW;
-    const nm=sv("text",{x:W-6,y:y+rowH/2+4,"font-size":13,"font-weight":600,fill:ink,"text-anchor":"end"}); nm.textContent=a.name; svg.appendChild(nm);
-    if(bwid>0){ const rx=5; const d=`M ${x0} ${by} L ${x0-bwid+rx} ${by} Q ${x0-bwid} ${by} ${x0-bwid} ${by+rx} L ${x0-bwid} ${by+barH-rx} Q ${x0-bwid} ${by+barH} ${x0-bwid+rx} ${by+barH} L ${x0} ${by+barH} Z`;
-      svg.appendChild(sv("path",{d,fill:bar})); }
-    let labelX=x0-bwid-8, labelFill=ink2; if(labelX<95){ labelX=x0-10; labelFill="#ffffff"; }
-    const vt=sv("text",{x:labelX,y:y+rowH/2+4,"font-size":11.5,fill:labelFill,"text-anchor":"end"}); vt.textContent=money(a.spend,c)+" · "+fmtNum(a.leads)+" לידים"; svg.appendChild(vt);
-    const hit=sv("rect",{x:0,y,width:W,height:rowH,fill:"transparent"});
-    hit.addEventListener("pointermove",ev=>{ showTT(ev.clientX,ev.clientY,a.name,
-      [{color:bar,value:money(a.spend,c),name:"הוצאה"},{color:cssVar("--seq-1"),value:fmtNum(a.leads),name:"לידים"},{color:cssVar("--muted"),value:a.cpl!=null?money2(a.cpl,c):"—",name:"עלות לליד"}]);
-      hit.setAttribute("fill","rgba(255,255,255,0.04)"); });
-    hit.addEventListener("pointerleave",()=>{ hideTT(); hit.setAttribute("fill","transparent"); });
-    svg.appendChild(hit);
-  });
-  box.appendChild(svg);
-}
+function analyzeCampaign(camp,ctx){const c=ctx.currency,flags=[];let severity="good";const bump=s=>{const o={good:0,info:1,warning:2,critical:3};if(o[s]>o[severity])severity=s;};const add=(sev,ico,title,reason)=>{flags.push({sev,ico,title,reason});bump(sev);};const cpl=camp.cpl,ctr=camp.ctr,freq=camp.frequency,cpm=camp.cpm,trend=camp.cplTrend||[];const isAd=ctx.level==="ad";
+  if(camp.leads===0&&camp.spend>(ctx.medianCpl?ctx.medianCpl*2:80))add("critical","burn","שורף תקציב בלי לידים",`הוצאת ${money(camp.spend,c)} ללא אף ליד. לכבות ולבדוק פיקסל/טופס — לרוב תקלת מדידה.`);
+  if(cpl!=null&&ctx.medianCpl&&cpl>ctx.medianCpl*2)add("critical","expensive","עלות לליד גבוהה מאוד",`${money2(cpl,c)} לליד — פי ${(cpl/ctx.medianCpl).toFixed(1)} מהחציון. לצמצם 30–50% ולבחון קהל/הצעה.`);else if(cpl!=null&&ctx.medianCpl&&cpl>ctx.medianCpl*1.4)add("warning","expensive","עלות לליד יקרה מהממוצע",`${money2(cpl,c)} לליד, כ-${Math.round((cpl/ctx.medianCpl-1)*100)}% מעל החציון.`);
+  if(camp.impressions>800){if(ctr>0&&ctr<0.008)add("warning","creative","CTR נמוך — צריך להחליף קריאטיב",`CTR ${pct(ctr)} — ${isAd?"הקריאטיב":"הקריאטיבים"} לא עוצר את הגלילה. הוק חזק, פורמט אחר, טקסט חדש.`);else if(ctr>=0.008&&ctr<0.012)add("info","creative","CTR בינוני",`CTR ${pct(ctr)} — יש מקום לשיפור, לבחון וריאציה (A/B).`);}
+  if(freq>=3)add("warning","fatigue","עייפות קהל — תדירות גבוהה",`תדירות ${freq.toFixed(1)} — להרחיב קהל, לרענן קריאטיב, exclusion למי שהמיר.`);else if(freq>=2.3)add("info","fatigue","תדירות מטפסת",`תדירות ${freq.toFixed(1)} — לשים לב.`);
+  if(trend.length>=4){const h=Math.floor(trend.length/2),avg=a=>a.reduce((s,v)=>s+v,0)/a.length,e=avg(trend.slice(0,h)),l=avg(trend.slice(h));if(e>0&&(l-e)/e>0.3)add("warning","rising","מחיר הליד עולה במגמה",`עלייה של ${Math.round((l-e)/e*100)}% ב-CPL — סימן לעייפות קריאטיב.`);}
+  if(ctx.medianCpm&&cpm>ctx.medianCpm*1.6&&camp.impressions>800)add("info","cpm","CPM גבוה",`${money2(cpm,c)} לאלף — קהל צר/תחרות. הרחבת קהל, Advantage+.`);
+  if(cpl!=null&&ctx.medianCpl&&cpl<ctx.medianCpl*0.7&&camp.leads>=5&&freq<2&&severity==="good")add("good","winner","מנצח — מומלץ להגדיל",`עלות/ליד ${money2(cpl,c)}, תדירות בריאה. תקציב +20% מדורג.`);
+  if(camp.leads>0&&camp.leads<5&&camp.spend<(ctx.medianCpl?ctx.medianCpl*5:150)&&flags.length===0)add("info","learning","עדיין בלמידה",`נפח נמוך — לתת זמן ותקציב יציב.`);
+  if(flags.length===0)add("good","ok","ביצועים תקינים","המדדים בטווח בריא.");
+  return{...camp,flags,severity};}
+function analyzeUnits(level){const all=[];state.agents.forEach(a=>{if(a.error)return;const arr=level==="ad"?a.ads:a.campaigns;if(!arr)return;arr.forEach(u=>all.push({...u,agent:a.name,account:a.account,token:a.token,currency:a.currency||state.currency}));});const active=all.filter(u=>u.status==="ACTIVE"||u.status==null);const cpls=active.filter(u=>u.cpl!=null).map(u=>u.cpl).sort((a,b)=>a-b);const cpms=active.filter(u=>u.cpm>0).map(u=>u.cpm).sort((a,b)=>a-b);const med=a=>a.length?a[Math.floor(a.length/2)]:null;const ctx={medianCpl:med(cpls),medianCpm:med(cpms),currency:state.currency,level,unitWord:level==="ad"?"מודעה":"קמפיין"};const analyzed=active.map(u=>analyzeCampaign(u,{...ctx,currency:u.currency}));const ord={critical:3,warning:2,info:1,good:0};analyzed.sort((a,b)=>ord[b.severity]-ord[a.severity]||b.spend-a.spend);return{analyzed,ctx,totalActive:active.length,level,unitWord:ctx.unitWord};}
+function runAnalysis(){return analyzeUnits(state.analysisLevel||"ad");}
 
-/* ================= tables ================= */
-function renderAgentsTable(agg){
-  const table=document.getElementById("agentsTable"); table.replaceChildren();
-  const c=state.currency;
-  const cols=[{k:"name",l:"סוכן"},{k:"activeCampaigns",l:"סטטוס",sk:"activeCampaigns"},{k:"activeCampaigns",l:"קמפיינים"},{k:"spend",l:"הוצאה"},{k:"leads",l:"לידים"},{k:"cpl",l:"עלות לליד"},{k:"share",l:"% הוצאה",sk:"spend"}];
-  const thead=el("thead"),trh=el("tr");
-  cols.forEach((col,idx)=>{ const th=el("th",null,col.l+" "); const sk=col.sk||col.k;
-    if(state.sortKey===sk){ th.appendChild(el("span",null,state.sortDir<0?"▼":"▲")); }
-    if(idx!==1){ th.addEventListener("click",()=>{ if(state.sortKey===sk)state.sortDir*=-1; else{state.sortKey=sk;state.sortDir=-1;} renderAll(); }); } else th.style.cursor="default";
-    trh.appendChild(th); });
-  thead.appendChild(trh); table.appendChild(thead);
-  const rows=[...agg.per]; rows.sort((a,b)=>{ const k=state.sortKey; if(k==="name")return -state.sortDir*a.name.localeCompare(b.name,"he");
-    const av=a[k]==null?-Infinity:a[k],bv=b[k]==null?-Infinity:b[k]; return state.sortDir*(av-bv); });
-  const tb=el("tbody");
-  rows.forEach(a=>{ const tr=el("tr");
-    const td0=el("td"); td0.appendChild(el("span","agent-name",a.name)); tr.appendChild(td0);
-    const tst=el("td"); const sc=el("div","status-cell");
-    if(a.error){ sc.appendChild(el("span","dot9 err")); sc.appendChild(el("span","err-msg",a.error)); }
-    else if(a.activeCampaigns>0){ sc.appendChild(el("span","dot9 on")); sc.appendChild(el("span",null,"באוויר")); }
-    else{ sc.appendChild(el("span","dot9 off")); sc.appendChild(el("span",null,"כבוי")); }
-    tst.appendChild(sc); tr.appendChild(tst);
-    tr.appendChild(el("td",null,a.error?"—":fmtNum(a.activeCampaigns)));
-    tr.appendChild(el("td",null,a.error?"—":money(a.spend,c)));
-    tr.appendChild(el("td",null,a.error?"—":fmtNum(a.leads)));
-    tr.appendChild(el("td",null,(a.error||a.cpl==null)?"—":money2(a.cpl,c)));
-    const tsh=el("td"); if(!a.error&&agg.totSpend>0){ const p=a.spend/agg.totSpend*100; const w=el("div","bar-mini"); const tr2=el("div","track"),f=el("div","fill"); f.style.width=p.toFixed(1)+"%"; tr2.appendChild(f); w.appendChild(tr2); w.appendChild(el("span",null,p.toFixed(0)+"%")); tsh.appendChild(w); } else tsh.textContent="—";
-    tr.appendChild(tsh); tb.appendChild(tr);
-  });
-  const trt=el("tr","total");
-  trt.appendChild(el("td",null,"סה״כ")); trt.appendChild(el("td",null,agg.onAir+" באוויר")); trt.appendChild(el("td",null,fmtNum(agg.totCampaigns)));
-  trt.appendChild(el("td",null,money(agg.totSpend,c))); trt.appendChild(el("td",null,fmtNum(agg.totLeads)));
-  trt.appendChild(el("td",null,agg.cpl!=null?money2(agg.cpl,c):"—")); trt.appendChild(el("td",null,"100%"));
-  tb.appendChild(trt); table.appendChild(tb);
-}
-function renderDailyTable(days){
-  const table=document.getElementById("dailyTable"); table.replaceChildren(); const c=state.currency;
-  const thead=el("thead"),trh=el("tr"); ["תאריך","הוצאה","לידים","עלות לליד"].forEach(h=>trh.appendChild(el("th",null,h))); thead.appendChild(trh); table.appendChild(thead);
-  const tb=el("tbody"); [...days].reverse().forEach(d=>{ const tr=el("tr");
-    tr.appendChild(el("td",null,ddmm(d.date))); tr.appendChild(el("td",null,money(d.spend,c))); tr.appendChild(el("td",null,fmtNum(d.leads)));
-    tr.appendChild(el("td",null,d.leads>0?money2(d.spend/d.leads,c):"—")); tb.appendChild(tr); });
-  table.appendChild(tb);
-}
+function adsManagerUrl(u){const num=String(u.account||"").replace(/\D/g,"");if(!num)return"https://adsmanager.facebook.com/adsmanager/manage/campaigns";if(u.id)return`https://adsmanager.facebook.com/adsmanager/manage/ads?act=${num}&selected_ad_ids=${u.id}`;return`https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${num}`;}
+function deriveAction(u,ctx,days){const cur=u.currency||state.currency;const daily=u.spend/Math.max(days,1);const has=i=>u.flags.some(f=>f.ico===i);const hasCre=u.flags.some(f=>f.ico==="creative");
+  if(has("burn"))return{type:"pause",pri:"critical",execKind:"pause",execLabel:"כבה מודעה",reason:`שורפת ${money(u.spend,cur)} בלי אף ליד. לכבות ולבדוק פיקסל/טופס.`,impact:`חוסך ~${money2(daily,cur)}/יום`,impactScore:u.spend+1e5};
+  if(has("rising")||hasCre)return{type:"creative",pri:"high",execKind:"pause",execLabel:"כבה מודעה (עצור קריאטיב חלש)",reason:`CTR ${pct(u.ctr)} · תדירות ${u.frequency.toFixed(1)} — קריאטיב שחוק. כיבוי עוצר בזבוז; החלפה מהבנק תגיע עם השרת.`,impact:`עלות/ליד ${u.cpl!=null?money2(u.cpl,cur):"—"}`,impactScore:u.spend+5e4};
+  if(has("expensive"))return{type:"budget",pri:"high",execKind:"budget",execFactor:0.7,execLabel:"הורד תקציב 30%",reason:`עלות לליד ${money2(u.cpl,cur)} — גבוהה בהרבה מהחציון. לצמצם ולבחון קהל.`,impact:`מפחית בזבוז`,impactScore:u.spend+4e4};
+  if(has("winner"))return{type:"scale",pri:"opportunity",execKind:"budget",execFactor:1.2,execLabel:"הגדל תקציב 20%",reason:`מנצחת: עלות/ליד ${money2(u.cpl,cur)}, תדירות בריאה. העלאת תקציב מדורגת.`,impact:`פוטנציאל +${Math.max(1,Math.round(u.leads*0.2))} לידים`,impactScore:u.leads*(u.cpl||1)};
+  return null;}
+function runActions(){const{analyzed,ctx}=analyzeUnits("ad");const days=rangeDates(state.range).days;const out=[];analyzed.forEach(u=>{const a=deriveAction(u,ctx,days);if(!a)return;out.push({...a,unit:u,id:(u.id||"")+":"+a.type,title:u.adName||u.name||"מודעה",crumb:`${u.agent} › ${u.campaignName||"—"} › ${u.adsetName||"—"}`,url:adsManagerUrl(u),dailySpend:u.spend/Math.max(days,1),leadUpside:a.type==="scale"?Math.max(1,Math.round(u.leads*0.2)):0});});const pri={critical:3,high:2,opportunity:1};out.sort((x,y)=>pri[y.pri]-pri[x.pri]||y.impactScore-x.impactScore);return{actions:out,ctx,totalActive:analyzed.length};}
+function updateActionBadge(){try{if(state.mode==="live"&&!state.analysisLoaded){document.getElementById("actCount").textContent="…";return;}const{actions}=runActions();const open=actions.filter(a=>!state.doneActions.has(a.id));const b=document.getElementById("actCount");b.textContent=String(open.length);b.style.display=open.length?"inline-block":"none";}catch(e){}}
+function renderActions(){const body=document.getElementById("actionsBody"),sum=document.getElementById("actionSummary");body.replaceChildren();sum.replaceChildren();if(state.mode==="live"&&!state.analysisLoaded){body.appendChild(el("div","empty","טוען מודעות מ-Meta…"));loadLiveUnits();return;}const{actions,totalActive}=runActions();const cur=state.currency;const fA=document.getElementById("actAgent").value,fT=document.getElementById("actType").value;let list=actions.filter(a=>!state.doneActions.has(a.id));if(fA!=="all")list=list.filter(a=>a.unit.agent===fA);if(fT!=="all")list=list.filter(a=>a.type===fT);const crit=actions.filter(a=>!state.doneActions.has(a.id)&&a.pri==="critical").length;const creative=actions.filter(a=>!state.doneActions.has(a.id)&&a.type==="creative").length;const savings=actions.filter(a=>!state.doneActions.has(a.id)&&a.type==="pause").reduce((s,a)=>s+a.dailySpend,0);[{cls:"",n:list.length,t:"פעולות פתוחות"},{cls:"crit",n:crit,t:"דחופות (לטפל היום)"},{cls:"warn",n:creative,t:"להחלפת קריאטיב"},{cls:"good",n:"~"+money(savings,cur),t:"חיסכון יומי פוטנציאלי"}].forEach(t=>{const d=el("div","ins "+t.cls);d.appendChild(el("div","n",String(t.n)));d.appendChild(el("div","t",t.t));sum.appendChild(d);});const ag=document.getElementById("actAgent");const names=[...new Set(state.agents.filter(a=>!a.error).map(a=>a.name))];const ca=ag.value;ag.replaceChildren();const oa=el("option",null,"כל הסוכנים");oa.value="all";ag.appendChild(oa);names.forEach(n=>{const o=el("option",null,n);o.value=n;ag.appendChild(o);});ag.value=ca&&[...ag.options].some(o=>o.value===ca)?ca:"all";
+  if(!list.length){let msg;if(state.mode==="live"&&totalActive===0){const e=state.loadErr?` (שגיאה: ${state.loadErr})`:"";msg=`לא הגיעו נתוני מודעות בטווח${e}. נסה טווח 30 יום או לחץ רענון.`;}else{const done=actions.filter(a=>state.doneActions.has(a.id)).length;msg=done?"כל הכבוד! טיפלת בכל הפעולות":"אין פעולות שדורשות טיפול — הכל בריא";}body.appendChild(el("div","empty",msg));renderHandled(actions);return;}
+  list.forEach(a=>{const card=el("div","act pri-"+a.pri);const ico=el("div","act-sev pri-"+a.pri);ico.innerHTML=svg(actionIconName(a.type));card.appendChild(ico);const main=el("div","act-main");main.appendChild(el("div","act-crumb",a.crumb));main.appendChild(el("div","act-title",a.execLabel+" — "+a.title));main.appendChild(el("div","act-reason",a.reason));const meta=el("div","act-meta");const pill=el("span","chip "+(a.pri==="critical"?"c-crit":a.pri==="opportunity"?"c-good":"c-warn"));pill.innerHTML=`<span class="dot"></span><span>${a.pri==="critical"?"דחוף":a.pri==="opportunity"?"הזדמנות":"חשוב"}</span>`;meta.appendChild(pill);meta.appendChild(el("span","chip c-mut",a.impact));meta.appendChild(el("span","chip c-mut","הוצאה "+money(a.unit.spend,cur)));main.appendChild(meta);const btns=el("div","act-btns");const exec=el("button","btn primary sm");exec.innerHTML=svg("check")+"<span>"+a.execLabel+"</span>";const es=exec.querySelector("svg");if(es)es.style.cssText="width:14px;height:14px";exec.addEventListener("click",()=>openExec(a));btns.appendChild(exec);const go=document.createElement("a");go.className="btn ghost sm";go.href=a.url;go.target="_blank";go.rel="noopener";go.innerHTML="<span>Ads Manager</span>"+svg("ext");const gs=go.querySelector("svg");if(gs)gs.style.cssText="width:13px;height:13px";btns.appendChild(go);const done=el("button","btn sm","טופל");done.addEventListener("click",()=>{state.doneActions.add(a.id);saveDone();renderActions();updateActionBadge();});btns.appendChild(done);main.appendChild(btns);card.appendChild(main);body.appendChild(card);});renderHandled(actions);}
+function renderHandled(actions){const done=actions.filter(a=>state.doneActions.has(a.id));if(!done.length)return;const wrap=el("div","done-sec");const det=document.createElement("details");const sm=document.createElement("summary");sm.textContent=`טופלו (${done.length})`;det.appendChild(sm);done.forEach(a=>{const row=el("div","act");row.style.cssText="padding:10px 14px;opacity:.6;align-items:center;";const m=el("div","act-main");m.appendChild(el("div","act-crumb",a.crumb));const t=el("div",null,a.execLabel+" — "+a.title);t.style.cssText="font-size:13px;font-weight:600;margin-top:2px;";m.appendChild(t);row.appendChild(m);const u=el("button","btn ghost sm","בטל");u.addEventListener("click",()=>{state.doneActions.delete(a.id);saveDone();renderActions();updateActionBadge();});row.appendChild(u);det.appendChild(row);});wrap.appendChild(det);document.getElementById("actionsBody").appendChild(wrap);}
+function saveDone(){lsSet("ads-command-actions-done",[...state.doneActions]);}
+async function loadLiveUnits(){try{state.loadErr=null;await Promise.all(state.agents.map(async a=>{if(a.error)return;try{const d=await fetchAdDetail(a,config,rangeDates(state.range).days);a.ads=d.ads;a.campaigns=d.campaigns;}catch(e){a.ads=[];a.campaigns=[];if(!state.loadErr)state.loadErr=e.message;}}));state.analysisLoaded=true;updateActionBadge();if(state.view==="actions")renderActions();else if(state.view==="analysis")renderAnalysis();}catch(e){document.getElementById("actionsBody").replaceChildren(el("div","empty","שגיאה: "+e.message));}}
 
-/* ================= OPTIMIZATION ENGINE (campaigner brain) ================= */
-function analyzeCampaign(camp,ctx){
-  // ctx: {medianCpl, medianCpm, currency}
-  const c=ctx.currency, flags=[]; let severity="good";
-  const bump=s=>{ const order={good:0,info:1,warning:2,critical:3}; if(order[s]>order[severity]) severity=s; };
-  const add=(sev,ico,title,reason)=>{ flags.push({sev,ico,title,reason}); bump(sev); };
+function renderAnalysis(){const hero=document.getElementById("insightHero"),body=document.getElementById("analysisBody");hero.replaceChildren();body.replaceChildren();if(state.mode==="live"&&!state.analysisLoaded){body.appendChild(el("div","empty","טוען מודעות מ-Meta…"));loadLiveUnits();return;}const{analyzed,ctx,totalActive,level,unitWord}=runAnalysis();if(!analyzed.length){body.appendChild(el("div","empty",`אין ${unitWord==="מודעה"?"מודעות":"קמפיינים"} פעיל לניתוח.`));return;}const counts={critical:0,warning:0,good:0};const needC=analyzed.filter(c=>c.flags.some(f=>f.ico==="creative")).length;const toScale=analyzed.filter(c=>c.severity==="good"&&c.flags.some(f=>f.ico==="winner")).length;analyzed.forEach(c=>{if(c.severity==="critical")counts.critical++;else if(c.severity==="warning")counts.warning++;else counts.good++;});const up=level==="ad"?"מודעות":"קמפיינים";[{cls:"",n:totalActive,t:up+" פעילות"},{cls:"crit",n:counts.critical,t:"דורשות טיפול דחוף"},{cls:"warn",n:needC,t:"מומלץ להחליף קריאטיב"},{cls:"good",n:toScale,t:"מומלצות להגדלה"}].forEach(c=>{const d=el("div","ins "+c.cls);d.appendChild(el("div","n",String(c.n)));d.appendChild(el("div","t",c.t));hero.appendChild(d);});const q=(document.getElementById("analysisSearch").value||"").trim().toLowerCase();const c=state.currency;let shown=0;analyzed.forEach(u=>{const title=level==="ad"?(u.adName||"מודעה"):u.name;const crumb=level==="ad"?`${u.agent} › ${u.campaignName||"—"} › ${u.adsetName||"—"}`:u.agent;if(q&&!((title||"").toLowerCase().includes(q)||(crumb||"").toLowerCase().includes(q)))return;shown++;const card=el("div","act pri-"+(u.severity==="critical"?"critical":u.severity==="warning"?"high":"opportunity"));const main=el("div","act-main");main.appendChild(el("div","act-crumb",crumb));main.appendChild(el("div","act-title",title));const meta=el("div","metric-row");const M=(l,v,cl)=>{const m=el("div","metric");m.appendChild(el("div","ml",l));m.appendChild(el("div","mv"+(cl?" "+cl:""),v));return m;};meta.appendChild(M("הוצאה",money(u.spend,c)));meta.appendChild(M("לידים",fmtNum(u.leads),u.leads===0?"bad":""));meta.appendChild(M("עלות/ליד",u.cpl!=null?money2(u.cpl,c):"—",u.cpl!=null&&ctx.medianCpl&&u.cpl>ctx.medianCpl*1.4?"bad":(u.cpl!=null&&ctx.medianCpl&&u.cpl<ctx.medianCpl*0.7?"good":"")));meta.appendChild(M("CTR",pct(u.ctr),u.ctr<0.008?"bad":u.ctr>0.015?"good":"warn"));meta.appendChild(M("תדירות",u.frequency.toFixed(1),u.frequency>=3?"bad":u.frequency>=2.3?"warn":"good"));meta.appendChild(M("CPM",money2(u.cpm,c)));main.appendChild(meta);const flags=el("div","flags");u.flags.forEach(f=>{const fl=el("div","flag "+f.sev);fl.appendChild(el("div","fb"));const ft=el("div");ft.appendChild(el("b",null,f.title));ft.appendChild(el("div","fr",f.reason));fl.appendChild(ft);flags.appendChild(fl);});main.appendChild(flags);card.appendChild(main);body.appendChild(card);});if(!shown)body.appendChild(el("div","empty","אין תוצאות לחיפוש."));}
 
-  const cpl=camp.cpl, ctr=camp.ctr, freq=camp.frequency, cpm=camp.cpm;
-  const trend=camp.cplTrend||[];
-
-  // 1. burning budget, no leads
-  if(camp.leads===0 && camp.spend > (ctx.medianCpl? ctx.medianCpl*2 : 80)){
-    add("critical","🛑","שורף תקציב בלי לידים",`הוצאת ${money(camp.spend,c)} ללא ולו ליד אחד. לכבות מיד ולבדוק שהפיקסל יורה אירוע Lead ושטופס הלידים תקין. לרוב זו תקלת מדידה ולא הקמפיין.`);
-  }
-  // 2. expensive CPL vs account
-  if(cpl!=null && ctx.medianCpl && cpl > ctx.medianCpl*2){
-    add("critical","💸","מחיר לליד גבוה מאוד",`${money2(cpl,c)} לליד — פי ${(cpl/ctx.medianCpl).toFixed(1)} מהחציון בחשבון (${money2(ctx.medianCpl,c)}). לצמצם תקציב ב-30–50% ולבחון קהל/הצעה מחדש לפני שמשקיעים עוד.`);
-  } else if(cpl!=null && ctx.medianCpl && cpl > ctx.medianCpl*1.4){
-    add("warning","📈","מחיר לליד יקר מהממוצע",`${money2(cpl,c)} לליד, כ-${Math.round((cpl/ctx.medianCpl-1)*100)}% מעל החציון. לבדוק אם הקהל רווי או שההצעה חלשה; לשקול הצעה חדה יותר.`);
-  }
-  const isAd = ctx.level==="ad";
-  const thing = isAd? "המודעה הזו" : "הקמפיין הזה";
-  // 3. low CTR → creative problem
-  if(camp.impressions>800){
-    if(ctr>0 && ctr<0.008){
-      add("warning","🎨","CTR נמוך — צריך להחליף את הקריאטיב",`CTR של ${pct(ctr)} — ${isAd?"הקריאטיב של המודעה הזו":"הקריאטיבים בקמפיין"} לא עוצר את הגלילה. ${isAd?"להחליף את המודעה":"לזהות איזו מודעה גוררת ולהחליף"}: הוק חזק ב-3 השניות הראשונות, פורמט אחר (וידאו/UGC), טקסט חדש. זה החשוד המרכזי לביצועים חלשים.`);
-    } else if(ctr>=0.008 && ctr<0.012){
-      add("info","🎨","CTR בינוני",`CTR ${pct(ctr)} — סביר אך יש מקום לשיפור. כדאי לבחון וריאציית קריאטיב נוספת (A/B) מול ${thing}.`);
-    }
-  }
-  // 4. frequency fatigue
-  if(freq>=3){
-    add("warning","🔁","עייפות קהל — תדירות גבוהה",`תדירות ${freq.toFixed(1)} — אותם אנשים ראו את ${isAd?"המודעה":"המודעות"} יותר מדי. להרחיב קהל, לרענן קריאטיב, או להפעיל exclusion של מי שכבר המיר.`);
-  } else if(freq>=2.3){
-    add("info","🔁","תדירות מתחילה לטפס",`תדירות ${freq.toFixed(1)} — לשים לב; אם תעבור 3 עם עליית CPL, זה הזמן לרענן קריאטיב.`);
-  }
-  // 5. rising CPL trend → fatigue
-  if(trend.length>=4){
-    const half=Math.floor(trend.length/2);
-    const early=trend.slice(0,half), late=trend.slice(half);
-    const avg=arr=>arr.reduce((s,v)=>s+v,0)/arr.length;
-    const e=avg(early), l=avg(late);
-    if(e>0 && (l-e)/e>0.3){
-      add("warning","⚠️","מחיר הליד עולה במגמה",`עלייה של ${Math.round((l-e)/e*100)}% במחיר הליד בין תחילת התקופה לסופה — סימן קלאסי לעייפות קריאטיב. להזרים קריאטיב חדש עכשיו לפני שהמחיר ממשיך לטפס.`);
-    }
-  }
-  // 6. high CPM
-  if(ctx.medianCpm && cpm>ctx.medianCpm*1.6 && camp.impressions>800){
-    add("info","📊","CPM גבוה",`${money2(cpm,c)} לאלף חשיפות — יקר יחסית. לרוב נובע מקהל צר או תחרות. לבדוק הרחבת קהל ו-Advantage+ placements.`);
-  }
-  // 7. scale candidate (winner)
-  if(cpl!=null && ctx.medianCpl && cpl < ctx.medianCpl*0.7 && camp.leads>=5 && freq<2 && severity==="good"){
-    add("good","🚀","מנצח — מומלץ להגדיל",`מחיר לליד ${money2(cpl,c)}, מתחת לחציון, תדירות בריאה (${freq.toFixed(1)}). להעלות תקציב ב-20–30% כל 2–3 ימים (לא לקפוץ בבת אחת כדי לא לאפס למידה).`);
-  }
-  // 8. still learning / low volume
-  if(camp.leads>0 && camp.leads<5 && camp.spend < (ctx.medianCpl?ctx.medianCpl*5:150) && flags.length===0){
-    add("info","⏳","עדיין בלמידה",`נפח נמוך (${camp.leads} לידים). לתת לזה זמן ותקציב יציב לפני שמסיקים מסקנות — לא לגעת בקהל/תקציב עכשיו.`);
-  }
-  if(flags.length===0){ add("good","✅","ביצועים תקינים","המדדים בטווח בריא. להמשיך לנטר ולשמור על יציבות."); }
-  return {...camp, flags, severity};
-}
-
-function analyzeUnits(level){
-  const unitWord=level==="ad"?"מודעה":"קמפיין";
-  const all=[];
-  state.agents.forEach(a=>{
-    if(a.error) return;
-    const arr=level==="ad"? a.ads : a.campaigns;
-    if(!arr) return;
-    arr.forEach(u=> all.push({...u, agent:a.name, account:a.account, token:a.token, currency:a.currency||state.currency}));
-  });
-  const active=all.filter(u=>u.status==="ACTIVE" || u.status==null);
-  const cpls=active.filter(u=>u.cpl!=null).map(u=>u.cpl).sort((a,b)=>a-b);
-  const cpms=active.filter(u=>u.cpm>0).map(u=>u.cpm).sort((a,b)=>a-b);
-  const med=arr=>arr.length?arr[Math.floor(arr.length/2)]:null;
-  const ctx={medianCpl:med(cpls), medianCpm:med(cpms), currency:state.currency, level, unitWord};
-  const analyzed=active.map(u=>analyzeCampaign(u,{...ctx, currency:u.currency}));
-  const ord={critical:3,warning:2,info:1,good:0};
-  analyzed.sort((a,b)=> ord[b.severity]-ord[a.severity] || b.spend-a.spend);
-  return {analyzed, ctx, totalActive:active.length, level, unitWord};
-}
-function runAnalysis(){ return analyzeUnits(state.analysisLevel||"ad"); }
-
-/* ===== Action Center: derive one concrete action per unit that needs one ===== */
-function adsManagerUrl(u){
-  const num=String(u.account||"").replace(/\D/g,"");
-  if(!num) return "https://adsmanager.facebook.com/adsmanager/manage/campaigns";
-  if(u.id) return `https://adsmanager.facebook.com/adsmanager/manage/ads?act=${num}&selected_ad_ids=${u.id}`;
-  return `https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${num}`;
-}
-function deriveAction(u,ctx,days){
-  const cur=u.currency||state.currency;
-  const daily=u.spend/Math.max(days,1);
-  const has=ico=>u.flags.some(f=>f.ico===ico);
-  const hasCreative=u.flags.some(f=>f.title.includes("קריאטיב"));
-  if(has("🛑")) return {type:"pause",pri:"critical",ico:"🛑",label:"כבה את המודעה",
-    execKind:"pause", execLabel:"כבה מודעה",
-    reason:`שורפת ${money(u.spend,cur)} בלי אף ליד. לכבות ולבדוק פיקסל/טופס — לרוב תקלת מדידה.`,
-    impact:`חוסך ~${money2(daily,cur)}/יום`, impactScore:u.spend+100000};
-  if(has("⚠️")||hasCreative) return {type:"creative",pri:"high",ico:"🎨",label:"החלף קריאטיב",
-    execKind:"pause", execLabel:"כבה מודעה (עצור קריאטיב חלש)",
-    reason:`CTR ${pct(u.ctr)} · תדירות ${u.frequency.toFixed(1)} — הקריאטיב שחוק. בשלב זה מכבים כדי לעצור בזבוז; החלפה אוטומטית מהבנק תגיע עם השרת.`,
-    impact:`עלות/ליד ${u.cpl!=null?money2(u.cpl,cur):"—"}`, impactScore:u.spend+50000};
-  if(has("💸")) return {type:"budget",pri:"high",ico:"💸",label:"צמצם תקציב",
-    execKind:"budget", execFactor:0.7, execLabel:"הורד תקציב 30%",
-    reason:`עלות לליד ${money2(u.cpl,cur)} — גבוהה בהרבה מהחציון (${money2(ctx.medianCpl,cur)}). לצמצם ולבחון קהל.`,
-    impact:`מפחית בזבוז`, impactScore:u.spend+40000};
-  if(has("🚀")) return {type:"scale",pri:"opportunity",ico:"🚀",label:"הגדל תקציב 20%",
-    execKind:"budget", execFactor:1.2, execLabel:"הגדל תקציב 20%",
-    reason:`מנצחת: עלות לליד ${money2(u.cpl,cur)}, תדירות בריאה (${u.frequency.toFixed(1)}). להעלות תקציב מדורג (לא לקפוץ בבת אחת).`,
-    impact:`פוטנציאל +${Math.max(1,Math.round(u.leads*0.2))} לידים`, impactScore:u.leads*(u.cpl||1)};
-  return null;
-}
-function runActions(){
-  const {analyzed,ctx}=analyzeUnits("ad");
-  const days=rangeDates(state.range).days;
-  const out=[];
-  analyzed.forEach(u=>{
-    const a=deriveAction(u,ctx,days); if(!a) return;
-    out.push({...a, unit:u, id:(u.id||"")+":"+a.type,
-      title:u.adName||u.name||"מודעה", crumb:`${u.agent} › ${u.campaignName||"—"} › ${u.adsetName||"—"}`,
-      url:adsManagerUrl(u), dailySpend:u.spend/Math.max(days,1), leadUpside:a.type==="scale"?Math.max(1,Math.round(u.leads*0.2)):0});
-  });
-  const pri={critical:3,high:2,opportunity:1};
-  out.sort((x,y)=> pri[y.pri]-pri[x.pri] || y.impactScore-x.impactScore);
-  return {actions:out, ctx, totalActive:analyzed.length};
-}
-
-function updateActionBadge(){
-  try{
-    if(state.mode==="live" && !state.analysisLoaded){ document.getElementById("actCount").textContent="…"; return; }
-    const {actions}=runActions();
-    const open=actions.filter(a=>!state.doneActions.has(a.id));
-    const b=document.getElementById("actCount"); b.textContent=String(open.length);
-    b.style.display=open.length?"inline-block":"none";
-  }catch(e){}
-}
-
-function renderActions(){
-  const body=document.getElementById("actionsBody");
-  const sum=document.getElementById("actionSummary");
-  body.replaceChildren(); sum.replaceChildren();
-
-  if(state.mode==="live" && !state.analysisLoaded){
-    body.appendChild(el("div","empty","טוען מודעות מ-Meta… (כמה שניות)"));
-    loadLiveUnits(); return;
-  }
-  const {actions,ctx,totalActive}=runActions();
-  const cur=state.currency;
-
-  // filters
-  const fAgent=document.getElementById("actAgent").value;
-  const fType=document.getElementById("actType").value;
-  let list=actions.filter(a=>!state.doneActions.has(a.id));
-  if(fAgent!=="all") list=list.filter(a=>a.unit.agent===fAgent);
-  if(fType!=="all") list=list.filter(a=>a.type===fType);
-
-  // summary tiles
-  const crit=actions.filter(a=>!state.doneActions.has(a.id)&&a.pri==="critical").length;
-  const creative=actions.filter(a=>!state.doneActions.has(a.id)&&a.type==="creative").length;
-  const scale=actions.filter(a=>!state.doneActions.has(a.id)&&a.type==="scale");
-  const savings=actions.filter(a=>!state.doneActions.has(a.id)&&(a.type==="pause")).reduce((s,a)=>s+a.dailySpend,0);
-  const leadUp=scale.reduce((s,a)=>s+a.leadUpside,0);
-  const tiles=[
-    {cls:"info",n:list.length,t:"פעולות פתוחות"},
-    {cls:"crit",n:crit,t:"דחופות (לטפל היום)"},
-    {cls:"warn",n:creative,t:"להחלפת קריאטיב"},
-    {cls:"good",n:"~"+money(savings,cur),t:"חיסכון יומי פוטנציאלי"},
-  ];
-  tiles.forEach(t=>{ const d=el("div","ins-card "+t.cls); d.appendChild(el("div","n",String(t.n))); d.appendChild(el("div","t",t.t)); sum.appendChild(d); });
-
-  // populate agent filter (once per render, preserving selection)
-  const agSel=document.getElementById("actAgent");
-  const names=[...new Set(state.agents.filter(a=>!a.error).map(a=>a.name))];
-  const cur_ag=agSel.value;
-  agSel.replaceChildren();
-  const optAll=el("option",null,"כל הסוכנים"); optAll.value="all"; agSel.appendChild(optAll);
-  names.forEach(n=>{ const o=el("option",null,n); o.value=n; agSel.appendChild(o); });
-  agSel.value=cur_ag&&[...agSel.options].some(o=>o.value===cur_ag)?cur_ag:"all";
-
-  if(!list.length){
-    const done=actions.filter(a=>state.doneActions.has(a.id)).length;
-    let msg;
-    if(state.mode==="live" && totalActive===0){
-      const err=state.loadErr? ` (שגיאה מ-Meta: ${state.loadErr})` : "";
-      msg=`לא הוגיעו נתוני מודעות מ-Meta בטווח הזה${err}. ייתכן שאין קמפיינים פעילים ב-7 הימים האחרונים — נסה טווח 30 יום, או ודא שלמודעות יש הרשאת צפייה. אם זה נמשך, לחץ רענון.`;
-    } else if(done){ msg="כל הכבוד! טיפלת בכל הפעולות 🎉"; }
-    else { msg="אין פעולות שדורשות טיפול בטווח הזה — הכל בריא ✅"; }
-    body.appendChild(el("div","empty",msg));
-    renderHandled(actions); return;
-  }
-
-  list.forEach(a=>{
-    const card=el("div","act-card pri-"+a.pri);
-    const ico=el("div","act-ico pri-"+a.pri,a.ico); card.appendChild(ico);
-    const main=el("div","act-main");
-    main.appendChild(el("div","act-crumb",a.crumb));
-    const tt=el("div","act-title"); tt.textContent=a.label+" — "+a.title; main.appendChild(tt);
-    main.appendChild(el("div","act-reason",a.reason));
-    const meta=el("div","act-meta");
-    const pill=el("span","pill "+(a.pri==="critical"?"down":a.pri==="opportunity"?"up":"warn"));
-    pill.textContent=a.pri==="critical"?"דחוף":a.pri==="opportunity"?"הזדמנות":"חשוב"; meta.appendChild(pill);
-    const imp=el("span","pill neutral",a.impact); meta.appendChild(imp);
-    const spend=el("span","pill neutral","הוצאה "+money(a.unit.spend,cur)); meta.appendChild(spend);
-    main.appendChild(meta);
-    const btns=el("div","act-btns");
-    const exec=el("button","btn primary sm","⚡ "+(a.execLabel||"בצע")); exec.addEventListener("click",()=>openExec(a)); btns.appendChild(exec);
-    const go=document.createElement("a"); go.className="btn ghost sm"; go.href=a.url; go.target="_blank"; go.rel="noopener";
-    go.textContent="פתח ב-Ads Manager ↗"; btns.appendChild(go);
-    const done=el("button","btn sm","✓ טופל"); done.addEventListener("click",()=>{ state.doneActions.add(a.id); saveDone(); renderActions(); updateActionBadge(); });
-    btns.appendChild(done);
-    main.appendChild(btns);
-    card.appendChild(main);
-    body.appendChild(card);
-  });
-  renderHandled(actions);
-}
-function renderHandled(actions){
-  const done=actions.filter(a=>state.doneActions.has(a.id));
-  if(!done.length) return;
-  const wrap=el("div","done-sec"); const det=document.createElement("details");
-  const sm=document.createElement("summary"); sm.style.cssText="cursor:pointer;font-size:13px;color:var(--text-2);padding:6px 0;";
-  sm.textContent=`✓ טופלו (${done.length})`; det.appendChild(sm);
-  done.forEach(a=>{ const row=el("div","act-card act-done"); row.style.padding="10px 14px";
-    const m=el("div","act-main"); m.appendChild(el("div","act-crumb",a.crumb));
-    const t=el("div",null,a.label+" — "+a.title); t.style.cssText="font-size:13.5px;font-weight:600;margin-top:2px;"; m.appendChild(t);
-    row.appendChild(m);
-    const undo=el("button","btn ghost sm","בטל"); undo.addEventListener("click",()=>{ state.doneActions.delete(a.id); saveDone(); renderActions(); updateActionBadge(); });
-    row.appendChild(undo); det.appendChild(row); });
-  wrap.appendChild(det); document.getElementById("actionsBody").appendChild(wrap);
-}
-function saveDone(){ lsSet("ads-command-actions-done",[...state.doneActions]); }
-
-/* ================= EXECUTION (write to Meta from the dashboard) ================= */
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
-async function graphPOST(path,params,token,ver){
-  const body=new URLSearchParams({...params, access_token:token});
-  const res=await fetch(`https://graph.facebook.com/${ver}/${path}`,{method:"POST",body});
-  const j=await res.json();
-  if(j.error){
-    const e=j.error; let m=e.message||"שגיאה";
-    if(e.code===190) m="הטוקן פג תוקף — הפק חדש";
-    else if(e.code===200||e.code===10||e.code===294||e.code===3) m="לטוקן אין הרשאת כתיבה (ads_management). צריך לשדרג את הטוקן — ראה הוראות בהודעה.";
-    else if(e.code===100) m="בקשה לא תקינה: "+m;
-    throw new Error(m);
-  }
-  return j;
-}
-async function execPause(u){
-  if(state.mode==="demo"){ await delay(500); return {simulated:true}; }
-  const token=(u.token&&u.token.trim())||config.token;
-  return graphPOST(u.id,{status:"PAUSED"},token,config.apiVer);
-}
-async function execBudget(u,factor){
-  if(state.mode==="demo"){ await delay(650); return {simulated:true, to: Math.round((80+Math.random()*120)*factor)*100}; }
-  const token=(u.token&&u.token.trim())||config.token, ver=config.apiVer;
-  // try ad set budget (ABO)
-  if(u.adsetId){
-    const info=await graphGET(u.adsetId,{fields:"daily_budget,lifetime_budget,name"},token,ver);
-    if(info && info.daily_budget && +info.daily_budget>0){
-      const nb=Math.max(100,Math.round(+info.daily_budget*factor));
-      await graphPOST(u.adsetId,{daily_budget:String(nb)},token,ver);
-      return {from:+info.daily_budget, to:nb, level:"אד-סט"};
-    }
-  }
-  // fallback: campaign budget (CBO)
-  if(u.campaignId){
-    const c=await graphGET(u.campaignId,{fields:"daily_budget,lifetime_budget,name"},token,ver);
-    if(c && c.daily_budget && +c.daily_budget>0){
-      const nb=Math.max(100,Math.round(+c.daily_budget*factor));
-      await graphPOST(u.campaignId,{daily_budget:String(nb)},token,ver);
-      return {from:+c.daily_budget, to:nb, level:"קמפיין"};
-    }
-  }
-  throw new Error("לא נמצא תקציב יומי לעריכה (ייתכן תקציב לכל-החיים או מבנה אחר) — אפשר לשנות ידנית דרך הכפתור 'פתח ב-Ads Manager'.");
-}
-
+async function execPause(u){if(state.mode==="demo"){await delay(450);return{simulated:true};}const token=(u.token&&u.token.trim())||config.token;return graphPOST(u.id,{status:"PAUSED"},token,config.apiVer);}
+async function execBudget(u,factor){if(state.mode==="demo"){await delay(550);return{simulated:true,to:Math.round((80+Math.random()*120)*factor)*100};}const token=(u.token&&u.token.trim())||config.token,ver=config.apiVer;if(u.adsetId){const info=await graphGET(u.adsetId,{fields:"daily_budget,lifetime_budget,name"},token,ver);if(info&&info.daily_budget&&+info.daily_budget>0){const nb=Math.max(100,Math.round(+info.daily_budget*factor));await graphPOST(u.adsetId,{daily_budget:String(nb)},token,ver);return{from:+info.daily_budget,to:nb,level:"אד-סט"};}}if(u.campaignId){const cc=await graphGET(u.campaignId,{fields:"daily_budget,lifetime_budget,name"},token,ver);if(cc&&cc.daily_budget&&+cc.daily_budget>0){const nb=Math.max(100,Math.round(+cc.daily_budget*factor));await graphPOST(u.campaignId,{daily_budget:String(nb)},token,ver);return{from:+cc.daily_budget,to:nb,level:"קמפיין"};}}throw new Error("אין תקציב יומי לעריכה (CBO/lifetime) — אפשר ידנית ב-Ads Manager.");}
 let pendingExec=null;
-function openExec(a){
-  pendingExec=a;
-  const live=state.mode==="live";
-  document.getElementById("execTitle").textContent=(a.execLabel||"בצע")+" — "+a.title;
-  const what = a.execKind==="pause"
-    ? "הפעולה <b>תכבה את המודעה</b> ב-Meta. הפיך לגמרי — אפשר להדליק אותה שוב בכל רגע."
-    : `הפעולה <b>${a.execFactor>1?"תעלה":"תוריד"} את התקציב היומי ב-${Math.round(Math.abs(a.execFactor-1)*100)}%</b> ברמת האד-סט (או הקמפיין אם התקציב מנוהל שם).`;
-  document.getElementById("execDesc").innerHTML =
-    `<div style="color:var(--muted);font-size:12px;margin-bottom:8px">${a.crumb}</div>${what}` +
-    (live? `<div class="callout-live">⚠️ זו פעולה <b>אמיתית</b> על החשבון של ${a.unit.agent}.</div>`
-         : `<div style="margin-top:10px;color:var(--muted);font-size:12.5px">מצב דמו — לא תתבצע פעולה אמיתית, רק הדגמה.</div>`);
-  const st=document.getElementById("execStatus"); st.textContent=""; st.style.color="";
-  const btn=document.getElementById("execConfirm"); btn.disabled=false; btn.textContent="אשר ובצע";
-  document.getElementById("execOverlay").classList.add("open");
-}
-function closeExec(){ document.getElementById("execOverlay").classList.remove("open"); pendingExec=null; }
-async function confirmExec(){
-  if(!pendingExec) return;
-  const a=pendingExec, st=document.getElementById("execStatus"), btn=document.getElementById("execConfirm");
-  btn.disabled=true; btn.textContent="מבצע…"; st.style.color="var(--muted)"; st.textContent="שולח בקשה ל-Meta…";
-  try{
-    let res;
-    if(a.execKind==="pause") res=await execPause(a.unit);
-    else res=await execBudget(a.unit,a.execFactor);
-    closeExec();
-    let msg = a.execKind==="pause" ? "✅ המודעה כובתה" :
-      (res&&res.to? `✅ התקציב עודכן ל-${money2(res.to/100,state.currency)}${res.level?" ("+res.level+")":""}` : "✅ התקציב עודכן");
-    if(state.mode==="demo") msg+=" · דמו";
-    toast(msg,"ok");
-    state.doneActions.add(a.id); saveDone(); renderActions(); updateActionBadge();
-  }catch(e){
-    st.style.color="#ff6b96"; st.textContent="שגיאה: "+e.message;
-    btn.disabled=false; btn.textContent="נסה שוב";
-  }
-}
-function toast(msg,kind){
-  const t=document.getElementById("toast"); t.textContent=msg; t.className="toast show "+(kind||"");
-  clearTimeout(toast._t); toast._t=setTimeout(()=>{ t.className="toast"; },4000);
-}
+function openExec(a){pendingExec=a;const live=state.mode==="live";document.getElementById("execTitle").textContent=(a.execLabel||"בצע")+" — "+a.title;const what=a.execKind==="pause"?"הפעולה <b>תכבה את המודעה</b> ב-Meta. הפיך לגמרי.":`הפעולה <b>${a.execFactor>1?"תעלה":"תוריד"} את התקציב היומי ב-${Math.round(Math.abs(a.execFactor-1)*100)}%</b> ברמת האד-סט.`;document.getElementById("execDesc").innerHTML=`<div style="color:var(--muted);font-size:11.5px;margin-bottom:8px">${a.crumb}</div>${what}`+(live?`<div class="callout-live">זו פעולה אמיתית על החשבון של ${a.unit.agent}.</div>`:`<div style="margin-top:10px;color:var(--muted);font-size:12px">מצב דמו — הדגמה בלבד.</div>`);const st=document.getElementById("execStatus");st.textContent="";st.style.color="";const btn=document.getElementById("execConfirm");btn.disabled=false;btn.textContent="אשר ובצע";document.getElementById("execOverlay").classList.add("open");}
+function closeExec(){document.getElementById("execOverlay").classList.remove("open");pendingExec=null;}
+async function confirmExec(){if(!pendingExec)return;const a=pendingExec,st=document.getElementById("execStatus"),btn=document.getElementById("execConfirm");btn.disabled=true;btn.textContent="מבצע…";st.style.color="var(--muted)";st.textContent="שולח בקשה ל-Meta…";try{let res;if(a.execKind==="pause")res=await execPause(a.unit);else res=await execBudget(a.unit,a.execFactor);closeExec();let msg=a.execKind==="pause"?"המודעה כובתה":(res&&res.to?`התקציב עודכן ל-${money2(res.to/100,state.currency)}${res.level?" ("+res.level+")":""}`:"התקציב עודכן");if(state.mode==="demo")msg+=" · דמו";toast(msg,"ok");state.doneActions.add(a.id);saveDone();renderActions();updateActionBadge();}catch(e){st.style.color="#fca5a5";st.textContent="שגיאה: "+e.message;btn.disabled=false;btn.textContent="נסה שוב";}}
+function toast(msg,kind){const t=document.getElementById("toast");t.textContent=msg;t.className="show "+(kind||"");clearTimeout(toast._t);toast._t=setTimeout(()=>{t.className="";},4000);}
 
-function renderAnalysis(){
-  const hero=document.getElementById("insightHero");
-  const body=document.getElementById("analysisBody");
-  hero.replaceChildren(); body.replaceChildren();
+async function renderCreatives(){const head=document.getElementById("creativesHead"),body=document.getElementById("creativesBody");head.replaceChildren();body.replaceChildren();const h=el("div");h.style.cssText="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;";const add=el("button","btn primary");add.innerHTML=svg("plus")+"<span>הוסף קריאטיב</span>";const as=add.querySelector("svg");if(as)as.style.cssText="width:15px;height:15px";add.addEventListener("click",openCreative);h.appendChild(add);head.appendChild(h);head.appendChild(el("div","section-note","בנק הקריאטיבים מנוהל בשרת. בהמשך (עם הרשאת כתיבה) המערכת תבנה מודעה חדשה מהבנק ותחליף מפסידנית אוטומטית עם A/B."));
+  if(!state.server.connected){body.appendChild(connectNote());return;}
+  let list=[];try{list=await api("/creatives");}catch(e){body.appendChild(el("div","empty","שגיאה בטעינת הבנק: "+e.message));return;}
+  if(!list.length){body.appendChild(el("div","empty","הבנק ריק — הוסף קריאטיב ראשון."));return;}
+  const grid=el("div","cbank");list.forEach(c=>{const card=el("div","cre");card.appendChild(el("div","cn",c.name));const m=el("div","cm");m.innerHTML=[c.angle?`זווית: ${c.angle}`:"",c.format?`פורמט: ${c.format}`:"",c.audience?`קהל: ${c.audience}`:"",c.note?`הערה: ${c.note}`:""].filter(Boolean).join("<br>")||"—";card.appendChild(m);const tags=el("div","ctags");const stMap={ready:["c-info","מוכן"],testing:["c-warn","בבדיקה"],winner:["c-good","מנצח"],retired:["c-mut","ארכיון"]};const sm=stMap[c.status]||stMap.ready;const stChip=el("span","chip "+sm[0]);stChip.innerHTML=`<span class="dot"></span><span>${sm[1]}</span>`;tags.appendChild(stChip);card.appendChild(tags);const f=el("div","cf");if(c.url){const a=document.createElement("a");a.className="btn ghost sm";a.href=c.url;a.target="_blank";a.rel="noopener";a.innerHTML="<span>פתח נכס</span>"+svg("ext");const xs=a.querySelector("svg");if(xs)xs.style.cssText="width:12px;height:12px";f.appendChild(a);}const del=el("button","btn ghost sm");del.innerHTML=svg("trash");const ds=del.querySelector("svg");if(ds)ds.style.cssText="width:14px;height:14px";del.addEventListener("click",async()=>{try{await api("/creatives/"+c.id,{method:"DELETE"});renderCreatives();toast("הקריאטיב נמחק","ok");}catch(e){toast("שגיאה: "+e.message);}});f.appendChild(del);card.appendChild(f);grid.appendChild(card);});body.appendChild(grid);}
+function openCreative(){if(!state.server.connected){toast("חבר קודם את השרת (API_KEY בהגדרות)");return;}["creName","creAngle","creFormat","creAud","creUrl","creNote"].forEach(id=>document.getElementById(id).value="");document.getElementById("creStatus").value="ready";document.getElementById("creOverlay").classList.add("open");}
+async function saveCreative(){const name=document.getElementById("creName").value.trim();if(!name){toast("צריך שם לקריאטיב");return;}try{await api("/creatives",{method:"POST",body:{name,angle:document.getElementById("creAngle").value.trim(),format:document.getElementById("creFormat").value.trim(),audience:document.getElementById("creAud").value.trim(),url:document.getElementById("creUrl").value.trim(),note:document.getElementById("creNote").value.trim(),status:document.getElementById("creStatus").value}});document.getElementById("creOverlay").classList.remove("open");renderCreatives();toast("נוסף לבנק","ok");}catch(e){toast("שגיאה: "+e.message);}}
+function connectNote(){const d=el("div","connect-note");d.innerHTML=`<b style="color:var(--text)">השרת לא מחובר.</b><br>כדי לנהל את בנק הקריאטיבים והאוטונומיה, הזן את ה-<code style="direction:ltr;display:inline-block">API_KEY</code> שהגדרת ב-Railway תחת <b>הגדרות → מפתח שרת</b>. אם אתה מריץ את הקובץ מקומית (לא דרך הדומיין) — עמודים אלה יעבדו רק כשהאפליקציה רצה על השרת.`;return d;}
 
-  if(state.mode==="live" && !state.analysisLoaded){
-    body.appendChild(el("div","empty","טוען נתוני מודעות מ-Meta… (יכול לקחת כמה שניות)"));
-    loadLiveUnits();
-    return;
-  }
-  const {analyzed,ctx,totalActive,level,unitWord}=runAnalysis();
-  if(!analyzed.length){ body.appendChild(el("div","empty",`אין ${unitWord==="מודעה"?"מודעות":"קמפיינים"} פעיל לניתוח בטווח הזה.`)); return; }
+async function renderAutonomy(){const body=document.getElementById("autonomyBody");body.replaceChildren();body.appendChild(el("div","empty","טוען מצב שרת…"));await probeServer();body.replaceChildren();
+  if(!state.server.connected){body.appendChild(connectNote());return;}
+  const st=state.server.status,cfg=state.server.config;const dry=cfg.dryRun;
+  const master=el("div","panel");master.style.marginBottom="14px";master.innerHTML=`<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><div><h3>מצב המערכת</h3><div class="psub">${dry?"DRY-RUN — המוח ממליץ בלבד, לא מבצע כלום":"פעיל — המוח מבצע פעולות אוטומטית לפי הכללים"}</div></div><div style="flex:1"></div><span class="chip ${dry?"c-warn":"c-good"}"><span class="dot"></span><span>${dry?"DRY-RUN":"LIVE"}</span></span>${(st.killed)?'<span class="chip c-crit"><span class="dot"></span><span>עצור (KILL)</span></span>':""}</div><div class="psub" style="margin-top:8px">חשבונות: ${st.accounts} · המלצות פתוחות: ${st.openRecommendations} · ריצה אחרונה: ${st.lastRun?new Date(st.lastRun).toLocaleTimeString("he-IL",{hour:"2-digit",minute:"2-digit"}):"—"}${st.lastError?' · <span style="color:#fca5a5">שגיאה: '+st.lastError+'</span>':""}</div>`;body.appendChild(master);
+  const gt=el("div","panel");gt.style.marginBottom="14px";gt.innerHTML=`<h3>אמון מדורג — כך פותחים אוטונומיה בבטחה</h3><div class="psub" style="margin-top:6px;line-height:1.7">1. השאר <b>DRY-RUN</b> כמה ימים — עקוב שההמלצות מדויקות.  2. כבה DRY-RUN והדלק <b>כיבוי אוטומטי</b> קודם (הפיך ובטוח).  3. רק כשראית ביצועים — הדלק <b>תקציב אוטומטי</b>. מעקות התקציב תמיד פעילים.</div>`;body.appendChild(gt);
+  const tog=el("div");
+  tog.appendChild(toggleRow("מצב DRY-RUN","כשמופעל — רק ממליץ, לא מבצע. כבה כדי לאפשר ביצוע.",cfg.dryRun,async v=>{await api("/config",{method:"PUT",body:{dryRun:v}});renderAutonomy();}));
+  tog.appendChild(toggleRow("כיבוי אוטומטי","המערכת מכבה לבד מודעות ששורפות תקציב / קריאטיב חלש (הפיך).",cfg.autoPause,async v=>{await api("/config",{method:"PUT",body:{autoPause:v}});renderAutonomy();}));
+  tog.appendChild(toggleRow("תקציב אוטומטי","המערכת מעלה/מורידה תקציב לבד בתוך המעקות.",cfg.autoBudget,async v=>{await api("/config",{method:"PUT",body:{autoBudget:v}});renderAutonomy();}));
+  tog.appendChild(toggleRow("מתג חירום","הקפאה מיידית של כל הפעולות.",st.killed,async v=>{await api(v?"/kill":"/resume",{method:"POST"});renderAutonomy();},true));
+  body.appendChild(tog);
+  const rp=el("div","panel");rp.style.marginTop="14px";rp.innerHTML=`<h3>כללי החלטה — כיול לתחום שלך</h3><div class="psub">ככל שהמספרים מדויקים לתחום שלך, המוח מחליט טוב יותר.</div>`;const rg=el("div","rules-grid");rg.style.marginTop="12px";
+  const rules=[["ctrLow","CTR נמוך (עשרוני)","מתחת לזה = קריאטיב חלש. 0.008 = 0.8%"],["freqHigh","תדירות גבוהה","מעל זה = עייפות קהל"],["cplExpensiveMult","מכפיל CPL יקר","פי כמה מהחציון נחשב יקר"],["cplWinnerMult","מכפיל CPL מנצח","מתחת לזה × חציון = מנצח"],["budgetDownFactor","גורם הורדת תקציב","0.7 = הורדה ל-70%"],["budgetUpFactor","גורם הגדלת תקציב","1.2 = העלאה ל-120%"],["budgetCapDaily","תקרת תקציב יומי","תקרה קשיחה לאד-סט"],["maxBudgetChangePct","מקס' שינוי תקציב %","גבול לשינוי בודד"],["windowDays","חלון ניתוח (ימים)","כמה ימים אחורה"]];
+  rules.forEach(([k,l,hh])=>{const r=el("div","rule");r.appendChild(el("label",null,l));const inp=document.createElement("input");inp.type="number";inp.step="any";inp.value=cfg[k];inp.id="rule_"+k;r.appendChild(inp);r.appendChild(el("div","rh",hh));rg.appendChild(r);});
+  rp.appendChild(rg);const save=el("button","btn primary","שמור כללים");save.style.marginTop="14px";save.addEventListener("click",async()=>{const patch={};rules.forEach(([k])=>{patch[k]=document.getElementById("rule_"+k).value;});try{await api("/config",{method:"PUT",body:patch});toast("הכללים נשמרו","ok");renderAutonomy();}catch(e){toast("שגיאה: "+e.message);}});rp.appendChild(save);body.appendChild(rp);
+  const rn=el("div");rn.style.marginTop="14px";const b=el("button","btn");b.innerHTML=svg("refresh")+"<span>הרץ מחזור ניתוח עכשיו</span>";const bs=b.querySelector("svg");if(bs)bs.style.cssText="width:14px;height:14px";b.addEventListener("click",async()=>{b.disabled=true;try{await api("/run",{method:"POST"});toast("מחזור הורץ","ok");renderAutonomy();}catch(e){toast("שגיאה: "+e.message);}b.disabled=false;});rn.appendChild(b);body.appendChild(rn);}
+function toggleRow(title,desc,on,onChange,danger){const row=el("div","toggle-row");const info=el("div","tinfo");info.appendChild(el("div","tt",title));info.appendChild(el("div","td",desc));row.appendChild(info);const sw=el("div","switch"+(on?" on":"")+(danger?" danger":""));sw.addEventListener("click",async()=>{sw.style.pointerEvents="none";try{await onChange(!on);}catch(e){toast("שגיאה: "+e.message);sw.style.pointerEvents="";}});row.appendChild(sw);return row;}
 
-  const counts={critical:0,warning:0,good:0};
-  const needCreative=analyzed.filter(c=>c.flags.some(f=>f.title.includes("קריאטיב"))).length;
-  const toScale=analyzed.filter(c=>c.severity==="good"&&c.flags.some(f=>f.ico==="🚀")).length;
-  const toKill=analyzed.filter(c=>c.flags.some(f=>f.ico==="🛑")).length;
-  analyzed.forEach(c=>{ if(c.severity==="critical")counts.critical++; else if(c.severity==="warning")counts.warning++; else counts.good++; });
+const TITLES={overview:["סקירה","כל הסוכנים במבט אחד"],actions:["מרכז פעולות","מה צריך לעשות עכשיו — לפי עדיפות"],analysis:["ניתוח קמפיינים","אופטימיזציה ברמת מודעה"],agents:["סוכנים","פירוט מלא לכל סוכן"],creatives:["בנק קריאטיבים","ניהול מאגר הקריאטיבים"],autonomy:["אוטונומיה וחוקים","שליטה במוח האוטונומי ובכללים"]};
+function switchView(v){state.view=v;document.querySelectorAll(".nav-item[data-view]").forEach(n=>n.classList.toggle("on",n.dataset.view===v));document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on",s.id==="view-"+v));document.getElementById("pageTitle").textContent=TITLES[v][0];document.getElementById("pageSub").textContent=TITLES[v][1];const showRange=["overview","actions","analysis","agents"].includes(v);document.getElementById("rangeWrap").style.display=showRange?"flex":"none";if(v==="overview")renderOverview();if(v==="actions")renderActions();if(v==="analysis")renderAnalysis();if(v==="agents")renderAgentsView();if(v==="creatives")renderCreatives();if(v==="autonomy")renderAutonomy();}
 
-  const uPlural=level==="ad"?"מודעות":"קמפיינים";
-  const cards=[
-    {cls:"info",n:totalActive,t:uPlural+" פעילות בניתוח"},
-    {cls:"crit",n:counts.critical,t:"דורשות טיפול דחוף"},
-    {cls:"warn",n:needCreative,t:"מומלץ להחליף קריאטיב"},
-    {cls:"good",n:toScale,t:"מומלצות להגדלה (Scale)"},
-  ];
-  cards.forEach(c=>{ const d=el("div","ins-card "+c.cls); d.appendChild(el("div","n",String(c.n))); d.appendChild(el("div","t",c.t)); hero.appendChild(d); });
+function agRow(name,account,token){const row=el("div","ag-row");const nm=document.createElement("input");nm.placeholder="שם";nm.value=name||"";nm.className="aname";const ac=document.createElement("input");ac.placeholder="act_123…";ac.value=account||"";ac.className="acct ltr";const tk=document.createElement("input");tk.placeholder="ריק = ראשי";tk.value=token||"";tk.className="atok ltr";const del=el("button",null,"✕");del.style.cssText="color:#fca5a5;background:none;border:none;cursor:pointer";del.addEventListener("click",()=>row.remove());row.append(nm,ac,tk,del);return row;}
+function openSettings(){const cfg=config||{token:"",apiVer:"v23.0",leadMode:"auto",leadCustom:"",refreshMin:10,currency:"auto",serverKey:"",agents:[]};document.getElementById("cfgToken").value=cfg.token||"";document.getElementById("cfgApiVer").value=cfg.apiVer||"v23.0";document.getElementById("cfgLeadMode").value=cfg.leadMode||"auto";document.getElementById("cfgLeadCustom").value=cfg.leadCustom||"";document.getElementById("cfgLeadCustom").style.display=(cfg.leadMode==="custom")?"block":"none";document.getElementById("cfgRefresh").value=String(cfg.refreshMin!=null?cfg.refreshMin:10);document.getElementById("cfgCurrency").value=cfg.currency||"auto";document.getElementById("cfgServerKey").value=cfg.serverKey||"";const ed=document.getElementById("agentsEditor");ed.replaceChildren();const ags=cfg.agents&&cfg.agents.length?cfg.agents:[{name:"",account:"",token:""},{name:"",account:"",token:""}];ags.forEach(a=>ed.appendChild(agRow(a.name,a.account,a.token)));document.getElementById("settingsOverlay").classList.add("open");}
+function closeSettings(){document.getElementById("settingsOverlay").classList.remove("open");}
+function saveSettings(){const ags=[...document.querySelectorAll("#agentsEditor .ag-row")].map(r=>({name:r.querySelector(".aname").value.trim(),account:r.querySelector(".acct").value.trim(),token:r.querySelector(".atok").value.trim()})).filter(a=>a.account);ags.forEach((a,i)=>{if(!a.name)a.name="סוכן "+(i+1);});const serverKey=document.getElementById("cfgServerKey").value.trim();const cfg={token:document.getElementById("cfgToken").value.trim(),apiVer:document.getElementById("cfgApiVer").value.trim()||"v23.0",leadMode:document.getElementById("cfgLeadMode").value,leadCustom:document.getElementById("cfgLeadCustom").value.trim(),refreshMin:parseInt(document.getElementById("cfgRefresh").value,10),currency:document.getElementById("cfgCurrency").value,serverKey,agents:ags};const anyToken=cfg.token||ags.some(a=>a.token);config=cfg;lsSet(LS_KEY,cfg);if(anyToken&&ags.length)state.mode="live";state.analysisLoaded=false;closeSettings();setupAutoRefresh();refreshData();probeServer();if(state.view==="autonomy")renderAutonomy();if(state.view==="creatives")renderCreatives();}
+function setupAutoRefresh(){if(state.refreshTimer)clearInterval(state.refreshTimer);const m=config?config.refreshMin:0;if(state.mode==="live"&&m>0)state.refreshTimer=setInterval(refreshData,m*60000);}
 
-  const sum=el("div","card"); sum.style.marginBottom="14px";
-  const parts=[];
-  if(toKill) parts.push(`<b style="color:#ff6b96">${toKill}</b> ${uPlural} שורפות תקציב בלי תוצאות — לטפל היום`);
-  if(needCreative) parts.push(`<b style="color:#ffca66">${needCreative}</b> זקוקות לרענון קריאטיב`);
-  if(toScale) parts.push(`<b style="color:#3ee089">${toScale}</b> מנצחות שכדאי להגדיל`);
-  const ctxLine = ctx.medianCpl!=null? ` חציון עלות לליד: <b>${money2(ctx.medianCpl,state.currency)}</b>.`:"";
-  sum.innerHTML=`<h3>סיכום מנהל 🧠</h3><div class="csub" style="margin-top:6px;line-height:1.7">${parts.length?parts.join(" · "):"הכל בטווח בריא."}${ctxLine}</div>`;
-  body.appendChild(sum);
-
-  const q=(document.getElementById("analysisSearch").value||"").trim().toLowerCase();
-  const c=state.currency;
-  let shown=0;
-  analyzed.forEach(u=>{
-    const title=level==="ad"?(u.adName||"מודעה"):u.name;
-    const crumb=level==="ad"? `${u.agent} › ${u.campaignName||"—"} › ${u.adsetName||"—"}` : u.agent;
-    if(q && !((title||"").toLowerCase().includes(q) || (crumb||"").toLowerCase().includes(q))) return;
-    shown++;
-    const card=el("div","camp sev-"+u.severity);
-    const head=el("div","c-head");
-    const left=el("div");
-    left.appendChild(el("div","c-agent",crumb));
-    left.appendChild(el("div","c-name",title));
-    head.appendChild(left); head.appendChild(el("div","spacer"));
-    const sevPill=el("span","pill "+(u.severity==="critical"?"down":u.severity==="warning"?"warn":u.severity==="info"?"info":"up"));
-    sevPill.textContent=u.severity==="critical"?"דחוף":u.severity==="warning"?"לתשומת לב":u.severity==="good"?"תקין":"מידע";
-    head.appendChild(sevPill); card.appendChild(head);
-
-    const mr=el("div","metric-row");
-    const metric=(l,v,cls)=>{ const m=el("div","metric"); m.appendChild(el("div","ml",l)); m.appendChild(el("div","mv"+(cls?" "+cls:""),v)); return m; };
-    mr.appendChild(metric("הוצאה",money(u.spend,c)));
-    mr.appendChild(metric("לידים",fmtNum(u.leads), u.leads===0?"bad":""));
-    mr.appendChild(metric("עלות/ליד",u.cpl!=null?money2(u.cpl,c):"—", u.cpl!=null&&ctx.medianCpl&&u.cpl>ctx.medianCpl*1.4?"bad":(u.cpl!=null&&ctx.medianCpl&&u.cpl<ctx.medianCpl*0.7?"good":"")));
-    mr.appendChild(metric("CTR",pct(u.ctr), u.ctr<0.008?"bad":u.ctr>0.015?"good":"warn"));
-    mr.appendChild(metric("תדירות",u.frequency.toFixed(1), u.frequency>=3?"bad":u.frequency>=2.3?"warn":"good"));
-    mr.appendChild(metric("CPM",money2(u.cpm,c)));
-    card.appendChild(mr);
-
-    const flags=el("div","flags");
-    u.flags.forEach(f=>{ const fl=el("div","flag "+f.sev); fl.appendChild(el("div","fi",f.ico));
-      const ft=el("div","ft"); ft.appendChild(el("b",null,f.title)); ft.appendChild(el("div","fr",f.reason)); fl.appendChild(ft); flags.appendChild(fl); });
-    card.appendChild(flags);
-    body.appendChild(card);
-  });
-  if(shown===0) body.appendChild(el("div","empty","אין תוצאות לחיפוש."));
-}
-
-async function loadLiveUnits(){
-  try{
-    state.loadErr=null;
-    await Promise.all(state.agents.map(async a=>{
-      if(a.error) return;
-      try{ const d=await fetchAdDetail(a,config,rangeDates(state.range).days); a.ads=d.ads; a.campaigns=d.campaigns; }
-      catch(e){ a.ads=[]; a.campaigns=[]; a.campError=e.message; if(!state.loadErr) state.loadErr=e.message; }
-    }));
-    state.analysisLoaded=true;
-    updateActionBadge();
-    if(state.view==="actions") renderActions(); else renderAnalysis();
-  }catch(e){
-    document.getElementById("analysisBody").replaceChildren(el("div","empty","שגיאה בטעינת נתונים: "+e.message));
-  }
-}
-
-/* ================= main render ================= */
-function renderAll(){
-  const r=rangeDates(state.range),p=prevRangeDates(state.range);
-  const agg=aggregate(r.since,r.until);
-  const earliest=state.agents.length?state.agents.reduce((m,a)=>{const d=a.daily[0]?.date;return(d&&d<m)?d:m;},"9999"):"9999";
-  const prev=(p.since>=earliest)?aggregate(p.since,p.until):null;
-  const vs=state.range==="today"?"מול אתמול":state.range==="yesterday"?"מול שלשום":"מול תקופה קודמת";
-  renderKPIs(agg,prev,vs);
-
-  const days=dailyTotals(r.since,r.until), c=state.currency;
-  const rt=r.days===1?(state.range==="today"?"היום":"אתמול"):`${r.days} ימים`;
-  const ctxNote=r.days===1?" (הגרף מציג 7 ימים להקשר)":"";
-  document.getElementById("spendSub").textContent=`סה״כ ${money(agg.totSpend,c)} · ${rt}${ctxNote}`;
-  document.getElementById("leadsSub").textContent=`סה״כ ${fmtNum(agg.totLeads)} לידים · ${rt}${ctxNote}`;
-  const accent=cssVar("--primary"),seq=cssVar("--seq-1");
-  const cd=days.length>1?days:dailyTotals(isoLocal(addDays(new Date(r.since),-6)),r.until);
-  columnChart("spendChart",cd,{valueKey:"spend",color:accent,ttName:"הוצאה",ttFmt:v=>money(v,c),axisFmt:v=>money(v,c),extra:row=>({color:seq,value:fmtNum(row.leads),name:"לידים"})});
-  columnChart("leadsChart",cd,{valueKey:"leads",color:seq,ttName:"לידים",ttFmt:v=>fmtNum(v),axisFmt:v=>fmtNum(v),extra:row=>({color:accent,value:money(row.spend,c),name:"הוצאה"})});
-  agentBarChart("agentChart",agg.per);
-  renderAgentsTable(agg); renderDailyTable(days.length?days:cd);
-
-  const lu=document.getElementById("lastUpdated");
-  if(state.fetchedAt) lu.textContent="עודכן "+state.fetchedAt.toLocaleTimeString("he-IL",{hour:"2-digit",minute:"2-digit"});
-  const tag=document.getElementById("modeTag");
-  if(state.mode==="live"){ tag.textContent="מחובר ל-Meta"; tag.className="mode-tag live"; document.getElementById("demoBanner").style.display="none"; }
-  else{ tag.textContent="מצב דמו"; tag.className="mode-tag demo"; document.getElementById("demoBanner").style.display="flex"; }
-}
-
-/* ================= view switching ================= */
-const TITLES={actions:["מרכז פעולות ⚡","מה צריך לעשות עכשיו — ממוין לפי עדיפות"],dashboard:["סקירה כללית 👋","כל הסוכנים במבט אחד"],analysis:["ניתוח קמפיינים 🧠","אופטימיזציה חכמה בראש של קמפיינר"],agents:["טבלת סוכנים","פירוט מלא לכל סוכן"]};
-function switchView(v){
-  state.view=v;
-  document.querySelectorAll(".nav-item[data-view]").forEach(n=>n.classList.toggle("on",n.dataset.view===v));
-  document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on",s.id==="view-"+v));
-  document.getElementById("pageTitle").textContent=TITLES[v][0];
-  document.getElementById("pageSub").textContent=TITLES[v][1];
-  if(v==="analysis") renderAnalysis();
-  if(v==="actions") renderActions();
-}
-
-/* ================= settings ================= */
-function agRow(name,account,token){
-  const row=el("div","ag-row");
-  const nm=document.createElement("input"); nm.placeholder="שם"; nm.value=name||""; nm.className="aname";
-  const ac=document.createElement("input"); ac.placeholder="act_123..."; ac.value=account||""; ac.className="acct ltr";
-  const tk=document.createElement("input"); tk.placeholder="ריק = טוקן ראשי"; tk.value=token||""; tk.className="atok ltr";
-  const del=el("button","del","✕"); del.type="button"; del.addEventListener("click",()=>row.remove());
-  row.append(nm,ac,tk,del); return row;
-}
-function openSettings(){
-  const cfg=config||{token:"",apiVer:"v23.0",leadMode:"auto",leadCustom:"",refreshMin:10,currency:"auto",agents:[]};
-  document.getElementById("cfgToken").value=cfg.token||"";
-  document.getElementById("cfgApiVer").value=cfg.apiVer||"v23.0";
-  document.getElementById("cfgLeadMode").value=cfg.leadMode||"auto";
-  document.getElementById("cfgLeadCustom").value=cfg.leadCustom||"";
-  document.getElementById("cfgLeadCustom").style.display=(cfg.leadMode==="custom")?"block":"none";
-  document.getElementById("cfgRefresh").value=String(cfg.refreshMin!=null?cfg.refreshMin:10);
-  document.getElementById("cfgCurrency").value=cfg.currency||"auto";
-  const ed=document.getElementById("agentsEditor"); ed.replaceChildren();
-  const ags=cfg.agents&&cfg.agents.length?cfg.agents:[{name:"",account:"",token:""},{name:"",account:"",token:""}];
-  ags.forEach(a=>ed.appendChild(agRow(a.name,a.account,a.token)));
-  document.getElementById("settingsOverlay").classList.add("open");
-}
-function closeSettings(){ document.getElementById("settingsOverlay").classList.remove("open"); }
-function saveSettings(){
-  const ags=[...document.querySelectorAll("#agentsEditor .ag-row")].map(r=>({name:r.querySelector(".aname").value.trim(),account:r.querySelector(".acct").value.trim(),token:r.querySelector(".atok").value.trim()})).filter(a=>a.account);
-  ags.forEach((a,i)=>{ if(!a.name)a.name="סוכן "+(i+1); });
-  const cfg={ token:document.getElementById("cfgToken").value.trim(), apiVer:document.getElementById("cfgApiVer").value.trim()||"v23.0",
-    leadMode:document.getElementById("cfgLeadMode").value, leadCustom:document.getElementById("cfgLeadCustom").value.trim(),
-    refreshMin:parseInt(document.getElementById("cfgRefresh").value,10), currency:document.getElementById("cfgCurrency").value, agents:ags };
-  const anyToken=cfg.token || ags.some(a=>a.token);
-  if(!anyToken || !ags.length){ alert("צריך טוקן (ראשי או לפי סוכן) ולפחות חשבון אחד. אפשר לחזור לדמו."); return; }
-  config=cfg; lsSet(LS_KEY,cfg); state.mode="live"; state.analysisLoaded=false;
-  closeSettings(); setupAutoRefresh(); refreshData();
-}
-function setupAutoRefresh(){
-  if(state.refreshTimer) clearInterval(state.refreshTimer);
-  const m=config?config.refreshMin:0;
-  if(state.mode==="live"&&m>0) state.refreshTimer=setInterval(refreshData,m*60000);
-}
-
-/* ================= events ================= */
+document.querySelectorAll(".nav-item[data-ic]").forEach(n=>{n.insertAdjacentHTML("afterbegin",svg(n.dataset.ic));});
 document.getElementById("loginBtn").addEventListener("click",handleLogin);
-document.getElementById("liPass").addEventListener("keydown",e=>{ if(e.key==="Enter"&&!isFirstRun())handleLogin(); });
-document.getElementById("liPass2").addEventListener("keydown",e=>{ if(e.key==="Enter")handleLogin(); });
+document.getElementById("liPass").addEventListener("keydown",e=>{if(e.key==="Enter"&&!isFirstRun())handleLogin();});
+document.getElementById("liPass2").addEventListener("keydown",e=>{if(e.key==="Enter")handleLogin();});
 document.getElementById("navLogout").addEventListener("click",logout);
 document.getElementById("navSettings").addEventListener("click",openSettings);
 document.getElementById("btnSettings2").addEventListener("click",openSettings);
 document.getElementById("btnCancelCfg").addEventListener("click",closeSettings);
 document.getElementById("btnSaveCfg").addEventListener("click",saveSettings);
 document.getElementById("btnAddAgent").addEventListener("click",()=>document.getElementById("agentsEditor").appendChild(agRow("","","")));
-document.getElementById("btnDemo").addEventListener("click",()=>{ state.mode="demo"; state.analysisLoaded=false; closeSettings(); if(state.refreshTimer)clearInterval(state.refreshTimer); refreshData(); });
-document.getElementById("cfgLeadMode").addEventListener("change",e=>{ document.getElementById("cfgLeadCustom").style.display=e.target.value==="custom"?"block":"none"; });
+document.getElementById("btnDemo").addEventListener("click",()=>{state.mode="demo";state.analysisLoaded=false;closeSettings();if(state.refreshTimer)clearInterval(state.refreshTimer);refreshData();});
+document.getElementById("cfgLeadMode").addEventListener("change",e=>{document.getElementById("cfgLeadCustom").style.display=e.target.value==="custom"?"block":"none";});
 document.getElementById("btnRefresh").addEventListener("click",refreshData);
-document.getElementById("settingsOverlay").addEventListener("click",e=>{ if(e.target.id==="settingsOverlay")closeSettings(); });
+document.getElementById("settingsOverlay").addEventListener("click",e=>{if(e.target.id==="settingsOverlay")closeSettings();});
 document.querySelectorAll(".nav-item[data-view]").forEach(n=>n.addEventListener("click",()=>switchView(n.dataset.view)));
-document.getElementById("rangeSeg").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b)return;
-  document.querySelectorAll("#rangeSeg button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
-  state.range=b.dataset.range; state.analysisLoaded=(state.mode==="demo"); renderAll(); updateActionBadge(); if(state.view==="analysis")renderAnalysis(); if(state.view==="actions")renderActions(); });
-document.getElementById("levelSeg").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b)return;
-  document.querySelectorAll("#levelSeg button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
-  state.analysisLevel=b.dataset.level; renderAnalysis(); });
-let searchT=null;
-document.getElementById("analysisSearch").addEventListener("input",()=>{ clearTimeout(searchT); searchT=setTimeout(renderAnalysis,180); });
+document.getElementById("rangeSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;document.querySelectorAll("#rangeSeg button").forEach(x=>x.classList.remove("on"));b.classList.add("on");state.range=b.dataset.range;state.analysisLoaded=(state.mode==="demo");renderOverview();updateActionBadge();if(state.view==="actions")renderActions();if(state.view==="analysis")renderAnalysis();if(state.view==="agents")renderAgentsView();});
+document.getElementById("levelSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;document.querySelectorAll("#levelSeg button").forEach(x=>x.classList.remove("on"));b.classList.add("on");state.analysisLevel=b.dataset.level;renderAnalysis();});
+let searchT=null;document.getElementById("analysisSearch").addEventListener("input",()=>{clearTimeout(searchT);searchT=setTimeout(renderAnalysis,180);});
 document.getElementById("actAgent").addEventListener("change",renderActions);
 document.getElementById("actType").addEventListener("change",renderActions);
 document.getElementById("execConfirm").addEventListener("click",confirmExec);
 document.getElementById("execCancel").addEventListener("click",closeExec);
-document.getElementById("execOverlay").addEventListener("click",e=>{ if(e.target.id==="execOverlay")closeExec(); });
+document.getElementById("execOverlay").addEventListener("click",e=>{if(e.target.id==="execOverlay")closeExec();});
+document.getElementById("creSave").addEventListener("click",saveCreative);
+document.getElementById("creCancel").addEventListener("click",()=>document.getElementById("creOverlay").classList.remove("open"));
+document.getElementById("creOverlay").addEventListener("click",e=>{if(e.target.id==="creOverlay")document.getElementById("creOverlay").classList.remove("open");});
 
-/* ================= boot ================= */
-function boot(){
-  if(config && (config.token || (config.agents&&config.agents.some(a=>a.token))) && config.agents&&config.agents.length) state.mode="live";
-  switchView(state.view);
-  setupAutoRefresh(); refreshData();
-}
+function boot(){if(config&&(config.token||(config.agents&&config.agents.some(a=>a.token)))&&config.agents&&config.agents.length)state.mode="live";switchView(state.view);setupAutoRefresh();refreshData();}
 setupLoginUI();
 </script>
 </body>
