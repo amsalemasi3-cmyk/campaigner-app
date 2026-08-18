@@ -69,4 +69,21 @@ export const meta = {
   async setDailyBudget(token, id, minorUnits) {
     return call(token, id, { method: "POST", params: { daily_budget: String(minorUnits) } });
   },
+  // generic edges for the builder
+  async get(token, path, params = {}) { return call(token, path, { params }); },
+  async post(token, path, params = {}) { return call(token, path, { method: "POST", params }); },
+  // upload a video by URL (async processing on Meta's side)
+  async uploadVideo(token, account, fileUrl, name) {
+    return call(token, `${actId(account)}/advideos`, { method: "POST", params: { file_url: fileUrl, name: name || "creative video" } });
+  },
+  // insights for a specific set of ads (used by the A/B evaluator)
+  async adInsightsForAds(token, account, days) {
+    const j = await call(token, `${actId(account)}/insights`, {
+      params: { level: "ad", fields: "ad_id,ad_name,spend,actions,impressions,inline_link_clicks",
+        time_increment: "all_days", time_range: JSON.stringify({ since: isoDaysAgo(days - 1), until: isoDaysAgo(0) }), limit: "500" },
+    });
+    return j.data || [];
+  },
 };
+
+export { actId };

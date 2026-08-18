@@ -6,17 +6,22 @@
 // ============================================================
 import express from "express";
 import cron from "node-cron";
-import { config } from "./config.js";
+import { config, launchReady, accountFromId } from "./config.js";
 import { analyzeAccount } from "./engine.js";
 import { checkAction } from "./guardrails.js";
 import { execute } from "./executor.js";
-import { store, setRecommendations, audit, addCreative, removeCreative } from "./store.js";
+import { store, setRecommendations, audit, addCreative, removeCreative, setLaunchConfig } from "./store.js";
+import { swapCreative, launchABTest } from "./builder.js";
+import { evaluateAbTests } from "./abtest.js";
+import { meta, actId } from "./meta.js";
+import { launchCfg, tokenFor } from "./config.js";
 
 // fields the dashboard is allowed to read / change at runtime
 const TUNABLE = [
-  "dryRun", "autoPause", "autoBudget", "windowDays",
+  "dryRun", "autoPause", "autoBudget", "autoSwap", "autoCreate", "windowDays",
   "budgetCapDaily", "maxBudgetChangePct", "minLeadsBeforeAction", "minImpressionsForCreative",
   "ctrLow", "freqHigh", "cplExpensiveMult", "cplWinnerMult", "budgetDownFactor", "budgetUpFactor",
+  "abTestDays", "abMinResults", "abConfidence",
 ];
 function readConfig() { const o = {}; for (const k of TUNABLE) o[k] = config[k]; return o; }
 function writeConfig(patch) {
@@ -53,8 +58,26 @@ export async function runCycle() {
     if (g.ok) await execute(rec);
     else audit({ agent: rec.agent, adId: rec.adId, adName: rec.adName,
       action: rec.action.kind + ":" + rec.action.type, dryRun: config.dryRun, executed: false, why: g.why });
+
+    // auto-swap: fatigued / weak-creative → replace from the bank (same adset)
+    if (config.autoSwap && (rec.action.type === "creative" || rec.action.type === "fatigue")) {
+      const cr = pickBankCreative(rec.account);
+      if (cr) { try { await swapCreative(accountFromId(rec.account), { adId: rec.adId, adName: rec.adName, adsetId: rec.adsetId }, cr); } catch (e) { store.lastError = e.message; } }
+      else audit({ agent: rec.agent, adId: rec.adId, action: "swap", executed: false, why: "אין קריאטיב פנוי בבנק להחלפה" });
+    }
   }
+
+  // evaluate any running A/B tests whose window elapsed
+  try { await evaluateAbTests(new Date().toISOString()); } catch (e) { store.lastError = e.message; }
+
   console.log(`=== cycle done · ${all.length} recommendations ===`);
+}
+
+// pick a "ready" bank creative for an account (not retired), preferring winners
+function pickBankCreative(account) {
+  const pool = store.creatives.filter((c) => c.status !== "retired");
+  pool.sort((a, b) => (a.status === "winner" ? -1 : 0) - (b.status === "winner" ? -1 : 0));
+  return pool[0] || null;
 }
 
 // ---- APP: one server that serves the dashboard AND the API ----
@@ -101,17 +124,67 @@ api.post("/resume", (_req, res) => { store.killed = false; res.json({ killed: fa
 api.get("/config", (_req, res) => res.json(readConfig()));
 api.put("/config", (req, res) => res.json(writeConfig(req.body || {})));
 
-// creative bank
+// creative bank (now also holds the fields needed to BUILD an ad)
 api.get("/creatives", (_req, res) => res.json(store.creatives));
 api.post("/creatives", (req, res) => {
   const b = req.body || {};
   if (!b.name) return res.status(400).json({ error: "name required" });
   res.json(addCreative({
     name: String(b.name).slice(0, 120), angle: b.angle || "", format: b.format || "",
-    audience: b.audience || "", url: b.url || "", note: b.note || "", status: b.status || "ready",
+    audience: b.audience || "", note: b.note || "", status: b.status || "ready",
+    // build fields
+    assetType: b.assetType || "image", assetUrl: b.assetUrl || b.url || "", videoId: b.videoId || "",
+    headline: b.headline || "", primaryText: b.primaryText || "", description: b.description || "",
+    ctaType: b.ctaType || "", linkUrl: b.linkUrl || "", url: b.url || "",
   }));
 });
 api.delete("/creatives/:id", (req, res) => res.json({ removed: removeCreative(req.params.id) }));
+
+// creation readiness per account (what Meta fields are missing)
+api.get("/launch-status", (_req, res) => res.json(config.accounts.map((a) => ({ name: a.name, account: a.account, ...launchReady(a) }))));
+
+// full per-account launch profiles (for the "creation settings" screen)
+api.get("/accounts", (_req, res) => res.json(config.accounts.map((a) => ({
+  name: a.name, account: a.account, launch: launchCfg(a), ...launchReady(a),
+}))));
+// save a per-account launch profile from the UI
+api.put("/launch-config", (req, res) => {
+  const b = req.body || {};
+  if (!b.account) return res.status(400).json({ error: "account required" });
+  setLaunchConfig(b.account, b.patch || {});
+  const a = accountFromId(b.account);
+  res.json({ account: b.account, launch: launchCfg(a), ...launchReady(a) });
+});
+// auto-detect the pixel(s) and page(s) attached to an account
+api.get("/discover", async (req, res) => {
+  const acc = accountFromId(req.query.account);
+  const token = tokenFor(acc);
+  try {
+    const out = { pixels: [], pages: [] };
+    try { const px = await meta.get(token, `${actId(acc.account)}/adspixels`, { fields: "id,name" }); out.pixels = px.data || []; } catch (e) { out.pixelError = e.message; }
+    try { const pg = await meta.get(token, `${actId(acc.account)}/promote_pages`, { fields: "id,name" }); out.pages = pg.data || []; } catch (e) { /* pages optional */ }
+    res.json(out);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// manually launch an A/B test from bank creatives
+api.post("/launch", async (req, res) => {
+  const b = req.body || {};
+  const acc = accountFromId(b.account);
+  const creatives = (b.creativeIds || []).map((id) => store.creatives.find((c) => c.id === id)).filter(Boolean);
+  if (!creatives.length) return res.status(400).json({ error: "no valid creatives" });
+  try { res.json(await launchABTest(acc, { name: b.name, creatives, dailyBudgetMinor: b.dailyBudgetMinor })); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+// manual creative swap on a specific ad
+api.post("/swap", async (req, res) => {
+  const b = req.body || {};
+  const cr = store.creatives.find((c) => c.id === b.creativeId);
+  if (!cr) return res.status(400).json({ error: "creative not found" });
+  try { res.json(await swapCreative(accountFromId(b.account), { adId: b.adId, adsetId: b.adsetId, adName: b.adName }, cr)); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+api.get("/abtests", (_req, res) => res.json(store.abtests));
 
 app.use("/api", api);
 

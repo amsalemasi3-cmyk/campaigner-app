@@ -9,10 +9,27 @@ export const store = {
   recommendations: [],   // latest analysis output
   audit: [],             // every executed / attempted action
   creatives: [],         // creative bank entries
+  abtests: [],           // running / decided A/B tests
+  launchConfigs: {},     // per-account launch profile overrides (keyed by account id)
   killed: false,         // runtime kill switch (in addition to env)
   lastRun: null,
   lastError: null,
 };
+
+export function setLaunchConfig(accountId, patch) {
+  const id = String(accountId || "").trim();
+  if (!id) return null;
+  store.launchConfigs[id] = { ...(store.launchConfigs[id] || {}), ...(patch || {}) };
+  return store.launchConfigs[id];
+}
+
+let _tid = 1;
+export function addAbTest(t) {
+  const row = { id: "ab" + _tid++, ...t };
+  store.abtests.unshift(row);
+  if (store.abtests.length > 500) store.abtests.length = 500;
+  return row;
+}
 
 let _cid = 1;
 export function addCreative(c) {

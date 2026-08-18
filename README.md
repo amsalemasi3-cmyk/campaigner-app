@@ -66,8 +66,23 @@ cp .env.example .env   # fill in real values
 npm start
 ```
 
+## Creation engine (campaigns, creatives, A/B, auto-swap)
+
+The server can now CREATE — build campaigns/adsets/ads, make creatives from the bank, auto-replace fatigued creatives, and run Bayesian A/B tests. It is **fully gated by DRY_RUN**: while dry, it logs the exact plan and creates nothing.
+
+To make creation actually fire you must provide the Meta fields Meta requires (no code can create an ad without them):
+
+1. Set `LAUNCH_DEFAULTS` with your **Page ID**, **Pixel ID**, **landing URL**, objective, CTA, targeting.
+2. Give each bank creative its build fields (asset URL / video, headline, primary text, CTA, link) in the Creative Bank UI.
+3. Confirm readiness: `GET /api/launch-status` lists any missing fields per account.
+4. Validate on ONE account in Meta **Development mode** first, with `DRY_RUN=true`, and read the plan in the logs / `GET /api/audit`.
+5. Only then set `DRY_RUN=false` and enable `AUTO_SWAP` / `AUTO_CREATE`. Budget guardrails still apply.
+
+New endpoints: `GET /api/launch-status`, `POST /api/launch` (A/B from bank creatives), `POST /api/swap`, `GET /api/abtests`.
+
+> Production at scale (many client accounts) needs Advanced Access to `ads_management` (App Review + Business Verification).
+
 ## Roadmap (next increments)
 
-- **Wire dashboard → brain:** the dashboard reads `/api/actions` and `/api/audit` so it shows the server's recommendations and approvals happen in the UI (one shared brain).
-- **Bayesian A/B + smarter decisions:** statistical significance and an optional LLM reasoning pass on top of the deterministic engine — sharper decisions, no creative generation.
-- **Durable store:** add Postgres for full history + the learning loop (track outcomes of each decision).
+- **Durable store (Postgres):** persist audit, A/B tests, and the learning loop across redeploys.
+- **Optional LLM reasoning layer:** explains *why* and prioritizes on top of the deterministic core.

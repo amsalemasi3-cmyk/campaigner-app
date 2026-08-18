@@ -228,6 +228,7 @@
       <a class="nav-item" data-view="agents" data-ic="users"> סוכנים</a>
       <div class="sec">אוטומציה</div>
       <a class="nav-item" data-view="creatives" data-ic="image"> בנק קריאטיבים</a>
+      <a class="nav-item" data-view="launch" data-ic="target"> הגדרות יצירה</a>
       <a class="nav-item" data-view="autonomy" data-ic="sliders"> אוטונומיה וחוקים</a>
     </nav>
     <div class="side-sp"></div>
@@ -297,6 +298,10 @@
       <div id="creativesBody"></div>
     </section>
 
+    <section class="view" id="view-launch">
+      <div id="launchBody"></div>
+    </section>
+
     <section class="view" id="view-autonomy">
       <div id="autonomyBody"></div>
     </section>
@@ -321,8 +326,18 @@
     <div class="mf"><label>קהל יעד</label><input type="text" id="creAud" placeholder="קר / ריטרגטינג / לוקאלייק"></div>
     <div class="mf"><label>סטטוס</label><select id="creStatus"><option value="ready">מוכן</option><option value="testing">בבדיקה</option><option value="winner">מנצח</option><option value="retired">בארכיון</option></select></div>
   </div>
-  <div class="mf"><label>קישור לנכס (אופציונלי)</label><input type="text" id="creUrl" class="ltr" style="direction:ltr;text-align:left;" placeholder="https://…"></div>
   <div class="mf"><label>הערה</label><textarea id="creNote"></textarea></div>
+  <div style="border-top:1px solid var(--border);margin:6px 0 14px;padding-top:12px;"><div style="font-size:12.5px;font-weight:700;margin-bottom:2px;">שדות לבניית מודעה (למנוע היצירה האוטומטי)</div><div class="section-note" style="margin:2px 0 12px;">כדי שהמערכת תוכל לבנות מהקריאטיב מודעה אמיתית ולהריץ A/B.</div>
+  <div class="mcols">
+    <div class="mf"><label>סוג נכס</label><select id="creAssetType"><option value="image">תמונה</option><option value="video">וידאו</option></select></div>
+    <div class="mf"><label>CTA</label><select id="creCta"><option value="LEARN_MORE">Learn more</option><option value="SIGN_UP">Sign up</option><option value="GET_OFFER">Get offer</option><option value="CONTACT_US">Contact us</option><option value="SUBSCRIBE">Subscribe</option><option value="BOOK_TRAVEL">Book now</option></select></div>
+  </div>
+  <div class="mf"><label>קישור לנכס (URL של תמונה, או file_url לוידאו)</label><input type="text" id="creUrl" class="ltr" style="direction:ltr;text-align:left;" placeholder="https://…/asset.jpg"></div>
+  <div class="mf"><label>דף נחיתה (Link URL)</label><input type="text" id="creLink" class="ltr" style="direction:ltr;text-align:left;" placeholder="https://landing…"></div>
+  <div class="mcols">
+    <div class="mf"><label>כותרת (Headline)</label><input type="text" id="creHeadline" placeholder="הכותרת של המודעה"></div>
+    <div class="mf"><label>טקסט ראשי (Primary text)</label><input type="text" id="crePrimary" placeholder="הטקסט מעל המודעה"></div>
+  </div></div>
   <div class="m-act"><button class="btn primary" id="creSave">שמור לבנק</button><button class="btn" id="creCancel">ביטול</button></div>
 </div></div>
 
@@ -369,6 +384,7 @@ const ICONS={
   trash:'<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
   ext:'<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
   check:'<polyline points="20 6 9 17 4 12"/>',
+  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
 };
 function svg(name,cls){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${cls?`class="${cls}"`:""}>${ICONS[name]||""}</svg>`;}
 function actionIconName(t){return t==="scale"?"trend":t==="budget"?"down":t==="creative"?"brush":"pause";}
@@ -493,8 +509,8 @@ async function renderCreatives(){const head=document.getElementById("creativesHe
   let list=[];try{list=await api("/creatives");}catch(e){body.appendChild(el("div","empty","שגיאה בטעינת הבנק: "+e.message));return;}
   if(!list.length){body.appendChild(el("div","empty","הבנק ריק — הוסף קריאטיב ראשון."));return;}
   const grid=el("div","cbank");list.forEach(c=>{const card=el("div","cre");card.appendChild(el("div","cn",c.name));const m=el("div","cm");m.innerHTML=[c.angle?`זווית: ${c.angle}`:"",c.format?`פורמט: ${c.format}`:"",c.audience?`קהל: ${c.audience}`:"",c.note?`הערה: ${c.note}`:""].filter(Boolean).join("<br>")||"—";card.appendChild(m);const tags=el("div","ctags");const stMap={ready:["c-info","מוכן"],testing:["c-warn","בבדיקה"],winner:["c-good","מנצח"],retired:["c-mut","ארכיון"]};const sm=stMap[c.status]||stMap.ready;const stChip=el("span","chip "+sm[0]);stChip.innerHTML=`<span class="dot"></span><span>${sm[1]}</span>`;tags.appendChild(stChip);card.appendChild(tags);const f=el("div","cf");if(c.url){const a=document.createElement("a");a.className="btn ghost sm";a.href=c.url;a.target="_blank";a.rel="noopener";a.innerHTML="<span>פתח נכס</span>"+svg("ext");const xs=a.querySelector("svg");if(xs)xs.style.cssText="width:12px;height:12px";f.appendChild(a);}const del=el("button","btn ghost sm");del.innerHTML=svg("trash");const ds=del.querySelector("svg");if(ds)ds.style.cssText="width:14px;height:14px";del.addEventListener("click",async()=>{try{await api("/creatives/"+c.id,{method:"DELETE"});renderCreatives();toast("הקריאטיב נמחק","ok");}catch(e){toast("שגיאה: "+e.message);}});f.appendChild(del);card.appendChild(f);grid.appendChild(card);});body.appendChild(grid);}
-function openCreative(){if(!state.server.connected){toast("חבר קודם את השרת (API_KEY בהגדרות)");return;}["creName","creAngle","creFormat","creAud","creUrl","creNote"].forEach(id=>document.getElementById(id).value="");document.getElementById("creStatus").value="ready";document.getElementById("creOverlay").classList.add("open");}
-async function saveCreative(){const name=document.getElementById("creName").value.trim();if(!name){toast("צריך שם לקריאטיב");return;}try{await api("/creatives",{method:"POST",body:{name,angle:document.getElementById("creAngle").value.trim(),format:document.getElementById("creFormat").value.trim(),audience:document.getElementById("creAud").value.trim(),url:document.getElementById("creUrl").value.trim(),note:document.getElementById("creNote").value.trim(),status:document.getElementById("creStatus").value}});document.getElementById("creOverlay").classList.remove("open");renderCreatives();toast("נוסף לבנק","ok");}catch(e){toast("שגיאה: "+e.message);}}
+function openCreative(){if(!state.server.connected){toast("חבר קודם את השרת (API_KEY בהגדרות)");return;}["creName","creAngle","creFormat","creAud","creUrl","creNote","creLink","creHeadline","crePrimary"].forEach(id=>document.getElementById(id).value="");document.getElementById("creStatus").value="ready";document.getElementById("creAssetType").value="image";document.getElementById("creCta").value="LEARN_MORE";document.getElementById("creOverlay").classList.add("open");}
+async function saveCreative(){const name=document.getElementById("creName").value.trim();if(!name){toast("צריך שם לקריאטיב");return;}try{await api("/creatives",{method:"POST",body:{name,angle:document.getElementById("creAngle").value.trim(),format:document.getElementById("creFormat").value.trim(),audience:document.getElementById("creAud").value.trim(),note:document.getElementById("creNote").value.trim(),status:document.getElementById("creStatus").value,assetType:document.getElementById("creAssetType").value,assetUrl:document.getElementById("creUrl").value.trim(),url:document.getElementById("creUrl").value.trim(),ctaType:document.getElementById("creCta").value,linkUrl:document.getElementById("creLink").value.trim(),headline:document.getElementById("creHeadline").value.trim(),primaryText:document.getElementById("crePrimary").value.trim()}});document.getElementById("creOverlay").classList.remove("open");renderCreatives();toast("נוסף לבנק","ok");}catch(e){toast("שגיאה: "+e.message);}}
 function connectNote(){const d=el("div","connect-note");d.innerHTML=`<b style="color:var(--text)">השרת לא מחובר.</b><br>כדי לנהל את בנק הקריאטיבים והאוטונומיה, הזן את ה-<code style="direction:ltr;display:inline-block">API_KEY</code> שהגדרת ב-Railway תחת <b>הגדרות → מפתח שרת</b>. אם אתה מריץ את הקובץ מקומית (לא דרך הדומיין) — עמודים אלה יעבדו רק כשהאפליקציה רצה על השרת.`;return d;}
 
 async function renderAutonomy(){const body=document.getElementById("autonomyBody");body.replaceChildren();body.appendChild(el("div","empty","טוען מצב שרת…"));await probeServer();body.replaceChildren();
@@ -506,17 +522,56 @@ async function renderAutonomy(){const body=document.getElementById("autonomyBody
   tog.appendChild(toggleRow("מצב DRY-RUN","כשמופעל — רק ממליץ, לא מבצע. כבה כדי לאפשר ביצוע.",cfg.dryRun,async v=>{await api("/config",{method:"PUT",body:{dryRun:v}});renderAutonomy();}));
   tog.appendChild(toggleRow("כיבוי אוטומטי","המערכת מכבה לבד מודעות ששורפות תקציב / קריאטיב חלש (הפיך).",cfg.autoPause,async v=>{await api("/config",{method:"PUT",body:{autoPause:v}});renderAutonomy();}));
   tog.appendChild(toggleRow("תקציב אוטומטי","המערכת מעלה/מורידה תקציב לבד בתוך המעקות.",cfg.autoBudget,async v=>{await api("/config",{method:"PUT",body:{autoBudget:v}});renderAutonomy();}));
+  tog.appendChild(toggleRow("החלפת קריאטיב אוטומטית","כשמודעה נשחקת — המערכת בונה מודעה חדשה מהבנק באותו אד-סט ומכבה את הישנה.",cfg.autoSwap,async v=>{await api("/config",{method:"PUT",body:{autoSwap:v}});renderAutonomy();}));
+  tog.appendChild(toggleRow("בניית קמפיינים אוטומטית","מאפשר למערכת ליצור קמפיינים/מודעות ולהריץ A/B. דורש חשבון מוכן ליצירה.",cfg.autoCreate,async v=>{await api("/config",{method:"PUT",body:{autoCreate:v}});renderAutonomy();}));
   tog.appendChild(toggleRow("מתג חירום","הקפאה מיידית של כל הפעולות.",st.killed,async v=>{await api(v?"/kill":"/resume",{method:"POST"});renderAutonomy();},true));
   body.appendChild(tog);
   const rp=el("div","panel");rp.style.marginTop="14px";rp.innerHTML=`<h3>כללי החלטה — כיול לתחום שלך</h3><div class="psub">ככל שהמספרים מדויקים לתחום שלך, המוח מחליט טוב יותר.</div>`;const rg=el("div","rules-grid");rg.style.marginTop="12px";
-  const rules=[["ctrLow","CTR נמוך (עשרוני)","מתחת לזה = קריאטיב חלש. 0.008 = 0.8%"],["freqHigh","תדירות גבוהה","מעל זה = עייפות קהל"],["cplExpensiveMult","מכפיל CPL יקר","פי כמה מהחציון נחשב יקר"],["cplWinnerMult","מכפיל CPL מנצח","מתחת לזה × חציון = מנצח"],["budgetDownFactor","גורם הורדת תקציב","0.7 = הורדה ל-70%"],["budgetUpFactor","גורם הגדלת תקציב","1.2 = העלאה ל-120%"],["budgetCapDaily","תקרת תקציב יומי","תקרה קשיחה לאד-סט"],["maxBudgetChangePct","מקס' שינוי תקציב %","גבול לשינוי בודד"],["windowDays","חלון ניתוח (ימים)","כמה ימים אחורה"]];
+  const rules=[["ctrLow","CTR נמוך (עשרוני)","מתחת לזה = קריאטיב חלש. 0.008 = 0.8%"],["freqHigh","תדירות גבוהה","מעל זה = עייפות קהל"],["cplExpensiveMult","מכפיל CPL יקר","פי כמה מהחציון נחשב יקר"],["cplWinnerMult","מכפיל CPL מנצח","מתחת לזה × חציון = מנצח"],["budgetDownFactor","גורם הורדת תקציב","0.7 = הורדה ל-70%"],["budgetUpFactor","גורם הגדלת תקציב","1.2 = העלאה ל-120%"],["budgetCapDaily","תקרת תקציב יומי","תקרה קשיחה לאד-סט"],["maxBudgetChangePct","מקס' שינוי תקציב %","גבול לשינוי בודד"],["windowDays","חלון ניתוח (ימים)","כמה ימים אחורה"],["abTestDays","ימי A/B טסט","כמה זמן טסט רץ לפני הכרעה"],["abMinResults","מינ' תוצאות ל-A/B","כמה לידים לפני הכרעה"],["abConfidence","סף ביטחון A/B","0.9 = 90% ודאות למנצח"]];
   rules.forEach(([k,l,hh])=>{const r=el("div","rule");r.appendChild(el("label",null,l));const inp=document.createElement("input");inp.type="number";inp.step="any";inp.value=cfg[k];inp.id="rule_"+k;r.appendChild(inp);r.appendChild(el("div","rh",hh));rg.appendChild(r);});
   rp.appendChild(rg);const save=el("button","btn primary","שמור כללים");save.style.marginTop="14px";save.addEventListener("click",async()=>{const patch={};rules.forEach(([k])=>{patch[k]=document.getElementById("rule_"+k).value;});try{await api("/config",{method:"PUT",body:patch});toast("הכללים נשמרו","ok");renderAutonomy();}catch(e){toast("שגיאה: "+e.message);}});rp.appendChild(save);body.appendChild(rp);
   const rn=el("div");rn.style.marginTop="14px";const b=el("button","btn");b.innerHTML=svg("refresh")+"<span>הרץ מחזור ניתוח עכשיו</span>";const bs=b.querySelector("svg");if(bs)bs.style.cssText="width:14px;height:14px";b.addEventListener("click",async()=>{b.disabled=true;try{await api("/run",{method:"POST"});toast("מחזור הורץ","ok");renderAutonomy();}catch(e){toast("שגיאה: "+e.message);}b.disabled=false;});rn.appendChild(b);body.appendChild(rn);}
 function toggleRow(title,desc,on,onChange,danger){const row=el("div","toggle-row");const info=el("div","tinfo");info.appendChild(el("div","tt",title));info.appendChild(el("div","td",desc));row.appendChild(info);const sw=el("div","switch"+(on?" on":"")+(danger?" danger":""));sw.addEventListener("click",async()=>{sw.style.pointerEvents="none";try{await onChange(!on);}catch(e){toast("שגיאה: "+e.message);sw.style.pointerEvents="";}});row.appendChild(sw);return row;}
 
-const TITLES={overview:["סקירה","כל הסוכנים במבט אחד"],actions:["מרכז פעולות","מה צריך לעשות עכשיו — לפי עדיפות"],analysis:["ניתוח קמפיינים","אופטימיזציה ברמת מודעה"],agents:["סוכנים","פירוט מלא לכל סוכן"],creatives:["בנק קריאטיבים","ניהול מאגר הקריאטיבים"],autonomy:["אוטונומיה וחוקים","שליטה במוח האוטונומי ובכללים"]};
-function switchView(v){state.view=v;document.querySelectorAll(".nav-item[data-view]").forEach(n=>n.classList.toggle("on",n.dataset.view===v));document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on",s.id==="view-"+v));document.getElementById("pageTitle").textContent=TITLES[v][0];document.getElementById("pageSub").textContent=TITLES[v][1];const showRange=["overview","actions","analysis","agents"].includes(v);document.getElementById("rangeWrap").style.display=showRange?"flex":"none";if(v==="overview")renderOverview();if(v==="actions")renderActions();if(v==="analysis")renderAnalysis();if(v==="agents")renderAgentsView();if(v==="creatives")renderCreatives();if(v==="autonomy")renderAutonomy();}
+const RECIPES=[{obj:"OUTCOME_LEADS",opt:"OFFSITE_CONVERSIONS",label:"לידים → דף נחיתה + פיקסל (Lead)"},{obj:"OUTCOME_LEADS",opt:"LEAD_GENERATION",label:"טופס לידים בתוך פייסבוק (Instant Form)"},{obj:"OUTCOME_SALES",opt:"OFFSITE_CONVERSIONS",label:"מכירות → דף נחיתה + פיקסל (Purchase)"},{obj:"OUTCOME_TRAFFIC",opt:"LINK_CLICKS",label:"תנועה → קליקים לדף נחיתה"}];
+const CTAS=["LEARN_MORE","SIGN_UP","GET_OFFER","CONTACT_US","SUBSCRIBE","BOOK_TRAVEL","SHOP_NOW"];
+async function renderLaunch(){const body=document.getElementById("launchBody");body.replaceChildren();body.appendChild(el("div","empty","טוען חשבונות…"));await probeServer();body.replaceChildren();
+  if(!state.server.connected){body.appendChild(connectNote());return;}
+  body.appendChild(el("div","section-note","לכל סוכן: לחץ \"זהה פיקסל ועמוד\" (המערכת קוראת אותם מ-Meta), בחר מתכון, הדבק דף נחיתה — והאינדיקטור יהפוך לירוק \"מוכן ליצירה\". דף הנחיתה הוא הדבר היחיד שרק אתה יכול לתת."));
+  let accts=[];try{accts=await api("/accounts");}catch(e){body.appendChild(el("div","empty","שגיאה: "+e.message));return;}
+  if(!accts.length){body.appendChild(el("div","empty","אין חשבונות בשרת. ודא ש-ACCOUNTS מוגדר ב-Railway."));return;}
+  accts.forEach(a=>body.appendChild(launchCard(a)));
+}
+function launchCard(a){const l=a.launch||{};const card=el("div","panel");card.style.marginBottom="12px";
+  const head=el("div");head.style.cssText="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;";
+  const title=el("div");title.innerHTML=`<div style="font-size:15px;font-weight:700">${a.name}</div><div style="font-size:11px;color:var(--muted);direction:ltr;text-align:right">${a.account}</div>`;head.appendChild(title);head.appendChild(el("div",null,"")).style.flex="1";
+  const badge=el("span","chip "+(a.ready?"c-good":"c-warn"));badge.innerHTML=`<span class="dot"></span><span>${a.ready?"מוכן ליצירה":"חסר: "+(a.missing||[]).map(m=>({pageId:"עמוד",pixelId:"פיקסל",linkUrl:"דף נחיתה"}[m]||m)).join(", ")}</span>`;head.appendChild(badge);card.appendChild(head);
+  const grid=el("div");grid.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:12px;";
+  const mkField=(label,node)=>{const f=el("div");f.appendChild(el("label",null,label)).style.cssText="display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;";f.appendChild(node);return f;};
+  const inp=(val,ph,ltr)=>{const i=document.createElement("input");i.value=val||"";i.placeholder=ph||"";i.style.cssText="width:100%;padding:8px 10px;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;color:var(--text);font-size:13px;"+(ltr?"direction:ltr;text-align:left;":"");return i;};
+  const recipe=document.createElement("select");recipe.style.cssText="width:100%;padding:8px 10px;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;color:var(--text);font-size:13px;";RECIPES.forEach((r,i)=>{const o=el("option",null,r.label);o.value=i;if(l.objective===r.obj&&l.optimizationGoal===r.opt)o.selected=true;recipe.appendChild(o);});
+  const landing=inp(l.linkUrl,"https://your-landing-page",true);
+  const pixel=inp(l.pixelId,"יזוהה אוטומטית",true);
+  const page=inp(l.pageId,"יזוהה אוטומטית",true);
+  const cta=document.createElement("select");cta.style.cssText=recipe.style.cssText;CTAS.forEach(c=>{const o=el("option",null,c);o.value=c;if(l.ctaType===c)o.selected=true;cta.appendChild(o);});
+  const budget=inp(l.dailyBudgetMinor?(l.dailyBudgetMinor/100):"","תקציב יומי (₪)");budget.type="number";
+  grid.appendChild(mkField("מתכון קמפיין",recipe));
+  grid.appendChild(mkField("דף נחיתה (Link)",landing));
+  grid.appendChild(mkField("Pixel ID",pixel));
+  grid.appendChild(mkField("Page ID",page));
+  grid.appendChild(mkField("CTA",cta));
+  grid.appendChild(mkField("תקציב יומי ברירת מחדל (₪)",budget));
+  card.appendChild(grid);
+  const btns=el("div");btns.style.cssText="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;";
+  const detect=el("button","btn");detect.innerHTML=svg("target")+"<span>זהה פיקסל ועמוד</span>";const dsg=detect.querySelector("svg");if(dsg)dsg.style.cssText="width:14px;height:14px";
+  detect.addEventListener("click",async()=>{detect.disabled=true;detect.querySelector("span").textContent="מזהה…";try{const d=await api("/discover?account="+encodeURIComponent(a.account));if(d.pixels&&d.pixels[0]){pixel.value=d.pixels[0].id;toast("פיקסל זוהה: "+(d.pixels[0].name||d.pixels[0].id),"ok");}else toast("לא נמצא פיקסל בחשבון "+(d.pixelError?"("+d.pixelError+")":""));if(d.pages&&d.pages[0])page.value=d.pages[0].id;}catch(e){toast("שגיאה: "+e.message);}detect.disabled=false;detect.querySelector("span").textContent="זהה פיקסל ועמוד";});
+  btns.appendChild(detect);
+  const save=el("button","btn primary","שמור פרופיל");save.addEventListener("click",async()=>{const r=RECIPES[parseInt(recipe.value,10)]||RECIPES[0];const patch={objective:r.obj,optimizationGoal:r.opt,linkUrl:landing.value.trim(),pixelId:pixel.value.trim(),pageId:page.value.trim(),ctaType:cta.value,dailyBudgetMinor:budget.value?Math.round(parseFloat(budget.value)*100):undefined};try{await api("/launch-config",{method:"PUT",body:{account:a.account,patch}});toast("הפרופיל נשמר","ok");renderLaunch();}catch(e){toast("שגיאה: "+e.message);}});
+  btns.appendChild(save);card.appendChild(btns);
+  return card;}
+
+const TITLES={overview:["סקירה","כל הסוכנים במבט אחד"],actions:["מרכז פעולות","מה צריך לעשות עכשיו — לפי עדיפות"],analysis:["ניתוח קמפיינים","אופטימיזציה ברמת מודעה"],agents:["סוכנים","פירוט מלא לכל סוכן"],creatives:["בנק קריאטיבים","ניהול מאגר הקריאטיבים"],launch:["הגדרות יצירה","פרופיל יצירת קמפיינים לכל סוכן"],autonomy:["אוטונומיה וחוקים","שליטה במוח האוטונומי ובכללים"]};
+function switchView(v){state.view=v;document.querySelectorAll(".nav-item[data-view]").forEach(n=>n.classList.toggle("on",n.dataset.view===v));document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on",s.id==="view-"+v));document.getElementById("pageTitle").textContent=TITLES[v][0];document.getElementById("pageSub").textContent=TITLES[v][1];const showRange=["overview","actions","analysis","agents"].includes(v);document.getElementById("rangeWrap").style.display=showRange?"flex":"none";if(v==="overview")renderOverview();if(v==="actions")renderActions();if(v==="analysis")renderAnalysis();if(v==="agents")renderAgentsView();if(v==="creatives")renderCreatives();if(v==="launch")renderLaunch();if(v==="autonomy")renderAutonomy();}
 
 function agRow(name,account,token){const row=el("div","ag-row");const nm=document.createElement("input");nm.placeholder="שם";nm.value=name||"";nm.className="aname";const ac=document.createElement("input");ac.placeholder="act_123…";ac.value=account||"";ac.className="acct ltr";const tk=document.createElement("input");tk.placeholder="ריק = ראשי";tk.value=token||"";tk.className="atok ltr";const del=el("button",null,"✕");del.style.cssText="color:#fca5a5;background:none;border:none;cursor:pointer";del.addEventListener("click",()=>row.remove());row.append(nm,ac,tk,del);return row;}
 function openSettings(){const cfg=config||{token:"",apiVer:"v23.0",leadMode:"auto",leadCustom:"",refreshMin:10,currency:"auto",serverKey:"",agents:[]};document.getElementById("cfgToken").value=cfg.token||"";document.getElementById("cfgApiVer").value=cfg.apiVer||"v23.0";document.getElementById("cfgLeadMode").value=cfg.leadMode||"auto";document.getElementById("cfgLeadCustom").value=cfg.leadCustom||"";document.getElementById("cfgLeadCustom").style.display=(cfg.leadMode==="custom")?"block":"none";document.getElementById("cfgRefresh").value=String(cfg.refreshMin!=null?cfg.refreshMin:10);document.getElementById("cfgCurrency").value=cfg.currency||"auto";document.getElementById("cfgServerKey").value=cfg.serverKey||"";const ed=document.getElementById("agentsEditor");ed.replaceChildren();const ags=cfg.agents&&cfg.agents.length?cfg.agents:[{name:"",account:"",token:""},{name:"",account:"",token:""}];ags.forEach(a=>ed.appendChild(agRow(a.name,a.account,a.token)));document.getElementById("settingsOverlay").classList.add("open");}

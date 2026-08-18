@@ -3,6 +3,8 @@
 // so you never hardcode secrets. Set these in Railway → Variables.
 // ============================================================
 
+import { store } from "./store.js";
+
 function bool(v, def = false) {
   if (v === undefined) return def;
   return String(v).toLowerCase() === "true" || v === "1";
@@ -61,8 +63,57 @@ export const config = {
   budgetUpFactor: num(process.env.BUDGET_UP_FACTOR, 1.2),     // raise to 120%
   leadTypeMode: process.env.LEAD_MODE || "auto",    // auto | pixel | custom
   leadCustom: process.env.LEAD_CUSTOM || "",
+
+  // --- CREATION / A-B autonomy (all OFF by default; also gated by dryRun) ---
+  autoSwap: bool(process.env.AUTO_SWAP, false),     // auto-replace fatigued/weak creatives from the bank
+  autoCreate: bool(process.env.AUTO_CREATE, false), // allow creating campaigns/adsets/ads
+  abTestDays: num(process.env.AB_TEST_DAYS, 4),     // how long an A/B runs before deciding
+  abMinResults: num(process.env.AB_MIN_RESULTS, 30),// min leads (or clicks) before deciding
+  abConfidence: num(process.env.AB_CONFIDENCE, 0.9),// probability threshold to declare a winner
 };
 
+// Launch defaults — the Meta fields required to CREATE anything.
+// Set LAUNCH_DEFAULTS as JSON; per-account overrides can live on each ACCOUNTS entry.
+function parseLaunch() {
+  let d = {};
+  try { d = JSON.parse(process.env.LAUNCH_DEFAULTS || "{}"); } catch (e) { console.error("⚠️  LAUNCH_DEFAULTS is not valid JSON."); }
+  return {
+    pageId: d.pageId || d.page_id || "",
+    instagramId: d.instagramId || d.instagram_id || "",
+    pixelId: d.pixelId || d.pixel_id || "",
+    objective: d.objective || "OUTCOME_LEADS",
+    optimizationGoal: d.optimizationGoal || "OFFSITE_CONVERSIONS",
+    billingEvent: d.billingEvent || "IMPRESSIONS",
+    customEventType: d.customEventType || "LEAD",
+    linkUrl: d.linkUrl || d.link || "",
+    ctaType: d.ctaType || d.cta || "LEARN_MORE",
+    countries: d.countries || ["IL"],
+    ageMin: d.ageMin || 18,
+    ageMax: d.ageMax || 65,
+    dailyBudgetMinor: d.dailyBudgetMinor || d.dailyBudget || 5000, // minor units (5000 = ₪50)
+  };
+}
+export const launchDefaults = parseLaunch();
+
 export function tokenFor(account) {
-  return (account.token && account.token.trim()) || config.metaToken;
+  return (account && account.token && account.token.trim()) || config.metaToken;
+}
+export function accountFromId(id) {
+  return config.accounts.find((a) => a.account === id) || { account: id };
+}
+// Merge global launch defaults + env per-account overrides + runtime (UI) overrides.
+export function launchCfg(account) {
+  const id = account && account.account;
+  const envOverride = (account && account.launch) || {};
+  const runtime = (id && store.launchConfigs && store.launchConfigs[id]) || {};
+  return { ...launchDefaults, ...envOverride, ...runtime };
+}
+// Is the account launch-ready? (has the Meta fields Meta requires)
+export function launchReady(account) {
+  const l = launchCfg(account);
+  const missing = [];
+  if (!l.pageId) missing.push("pageId");
+  if (!l.linkUrl) missing.push("linkUrl");
+  if (l.optimizationGoal === "OFFSITE_CONVERSIONS" && !l.pixelId) missing.push("pixelId");
+  return { ready: missing.length === 0, missing };
 }
