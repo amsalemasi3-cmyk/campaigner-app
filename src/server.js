@@ -14,7 +14,9 @@ import { store, setRecommendations, audit, addCreative, removeCreative, setLaunc
 import { swapCreative, launchABTest } from "./builder.js";
 import { evaluateAbTests } from "./abtest.js";
 import { meta, actId } from "./meta.js";
-import { launchCfg, tokenFor } from "./config.js";
+import { launchCfg, tokenFor, llmReady } from "./config.js";
+import { generateCopy } from "./llm.js";
+import { handleRejections, scanRejections } from "./rejections.js";
 
 // fields the dashboard is allowed to read / change at runtime
 const TUNABLE = [
@@ -22,6 +24,7 @@ const TUNABLE = [
   "budgetCapDaily", "maxBudgetChangePct", "minLeadsBeforeAction", "minImpressionsForCreative",
   "ctrLow", "freqHigh", "cplExpensiveMult", "cplWinnerMult", "budgetDownFactor", "budgetUpFactor",
   "abTestDays", "abMinResults", "abConfidence",
+  "autoFixRejections", "rejectionMaxRetries",
 ];
 function readConfig() { const o = {}; for (const k of TUNABLE) o[k] = config[k]; return o; }
 function writeConfig(patch) {
@@ -69,6 +72,8 @@ export async function runCycle() {
 
   // evaluate any running A/B tests whose window elapsed
   try { await evaluateAbTests(new Date().toISOString()); } catch (e) { store.lastError = e.message; }
+  // detect & handle rejected / blocked ads
+  try { await handleRejections(); } catch (e) { store.lastError = e.message; }
 
   console.log(`=== cycle done · ${all.length} recommendations ===`);
 }
@@ -105,6 +110,8 @@ api.use((req, res, next) => {
 api.get("/status", (_req, res) => res.json({
   dryRun: config.dryRun, killed: store.killed || config.killSwitch,
   autoPause: config.autoPause, autoBudget: config.autoBudget,
+  autoSwap: config.autoSwap, autoCreate: config.autoCreate, autoFixRejections: config.autoFixRejections,
+  llmReady: llmReady(), rejections: store.rejections.length,
   accounts: config.accounts.length, lastRun: store.lastRun, lastError: store.lastError,
   openRecommendations: store.recommendations.length,
 }));
@@ -185,6 +192,32 @@ api.post("/swap", async (req, res) => {
   catch (e) { res.status(500).json({ error: e.message }); }
 });
 api.get("/abtests", (_req, res) => res.json(store.abtests));
+
+// LLM copywriter — generate variations, optionally add to the bank
+api.get("/llm-status", (_req, res) => res.json({ ready: llmReady() }));
+api.post("/copy/generate", async (req, res) => {
+  try {
+    const vars = await generateCopy(req.body || {});
+    if (req.body && req.body.addToBank) {
+      const shared = { assetType: req.body.assetType || "image", assetUrl: req.body.assetUrl || "", url: req.body.assetUrl || "",
+        linkUrl: req.body.linkUrl || "", ctaType: req.body.ctaType || "", status: "ready", angle: req.body.angle || "", source: "ai" };
+      const added = vars.map((v, i) => addCreative({ name: (req.body.namePrefix || "AI קופי") + " " + (i + 1), headline: v.headline, primaryText: v.primaryText, ...shared }));
+      return res.json({ variations: vars, added });
+    }
+    res.json({ variations: vars });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// rejections
+api.get("/rejections", (_req, res) => res.json(store.rejections));
+api.post("/rejections/scan", async (_req, res) => {
+  try {
+    const found = [];
+    for (const acc of config.accounts) { try { found.push(...await scanRejections(acc)); } catch (e) { /* per-account */ } }
+    store.rejections = found;
+    res.json(found);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
 
 app.use("/api", api);
 

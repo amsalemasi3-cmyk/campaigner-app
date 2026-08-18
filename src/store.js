@@ -11,6 +11,8 @@ export const store = {
   creatives: [],         // creative bank entries
   abtests: [],           // running / decided A/B tests
   launchConfigs: {},     // per-account launch profile overrides (keyed by account id)
+  rejections: [],        // ads Meta rejected/flagged (last scan)
+  rejectionRetries: {},  // adId → attempts count
   killed: false,         // runtime kill switch (in addition to env)
   lastRun: null,
   lastError: null,

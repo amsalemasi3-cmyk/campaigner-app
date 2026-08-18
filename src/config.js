@@ -70,7 +70,17 @@ export const config = {
   abTestDays: num(process.env.AB_TEST_DAYS, 4),     // how long an A/B runs before deciding
   abMinResults: num(process.env.AB_MIN_RESULTS, 30),// min leads (or clicks) before deciding
   abConfidence: num(process.env.AB_CONFIDENCE, 0.9),// probability threshold to declare a winner
+
+  // --- LLM copywriter (optional; needs your own API key) ---
+  llmApiKey: process.env.LLM_API_KEY || "",
+  llmModel: process.env.LLM_MODEL || "claude-sonnet-4-5", // set to a model your key can use
+  llmProvider: process.env.LLM_PROVIDER || "anthropic",
+
+  // --- rejection / block handler ---
+  autoFixRejections: bool(process.env.AUTO_FIX_REJECTIONS, false), // auto-swap rejected ads from the bank
+  rejectionMaxRetries: num(process.env.REJECTION_MAX_RETRIES, 1),  // attempts before alerting a human
 };
+export function llmReady() { return !!config.llmApiKey && !!config.llmModel; }
 
 // Launch defaults — the Meta fields required to CREATE anything.
 // Set LAUNCH_DEFAULTS as JSON; per-account overrides can live on each ACCOUNTS entry.
