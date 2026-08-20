@@ -17,7 +17,7 @@ import { meta, actId } from "./meta.js";
 import { launchCfg, tokenFor, llmReady } from "./config.js";
 import { generateCopy } from "./llm.js";
 import { handleRejections, scanRejections } from "./rejections.js";
-import { computeSummary } from "./summary.js";
+import { computeSummary, computeAgentsData, computeAdDetail } from "./summary.js";
 
 // fields the dashboard is allowed to read / change at runtime
 const TUNABLE = [
@@ -100,7 +100,22 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 // health is open (no key)
 app.get("/health", (_req, res) => res.json({ ok: true, dryRun: config.dryRun, killed: store.killed || config.killSwitch }));
 
-// Everything under /api requires the shared-secret header.
+// ---- dashboard login (open, no key) ----
+// If ADMIN_USER + ADMIN_PASS are set, the dashboard logs in against the SERVER,
+// and on success receives the API key — so the same credentials work on every
+// device and settings never live in one browser.
+const serverAuthEnabled = () => !!(config.adminUser && config.adminPass);
+app.get("/api/auth-mode", (_req, res) => res.json({ serverAuth: serverAuthEnabled() }));
+app.post("/api/login", express.json(), (req, res) => {
+  if (!serverAuthEnabled()) return res.json({ ok: false, serverAuth: false });
+  const { user, pass } = req.body || {};
+  if (String(user) === config.adminUser && String(pass) === config.adminPass) {
+    return res.json({ ok: true, apiKey: config.apiKey });
+  }
+  return res.status(401).json({ ok: false, error: "bad credentials" });
+});
+
+// Everything else under /api requires the shared-secret header.
 const api = express.Router();
 api.use((req, res, next) => {
   const key = req.get("x-api-key");
@@ -224,6 +239,56 @@ api.post("/rejections/scan", async (_req, res) => {
 api.get("/summary", async (req, res) => {
   try { res.json(await computeSummary(req.query.range || "7d", { force: req.query.force === "1" })); }
   catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// full 30-day per-agent series for the main dashboard (overview / agents / charts)
+api.get("/agents-data", async (req, res) => {
+  try { res.json(await computeAgentsData({ force: req.query.force === "1" })); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ad-level detail for one account (actions / analysis pages)
+api.get("/ad-detail", async (req, res) => {
+  try {
+    const days = Math.max(1, parseInt(req.query.days || "7", 10));
+    res.json(await computeAdDetail(req.query.account, days, { force: req.query.force === "1" }));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ---- manual (user-initiated) writes from the dashboard action cards ----
+// These are explicit clicks (not the autonomous cycle), so they write directly.
+api.post("/manual/pause", async (req, res) => {
+  const { account, adId } = req.body || {};
+  if (!adId) return res.status(400).json({ error: "adId required" });
+  try {
+    const acc = accountFromId(account); const token = tokenFor(acc);
+    await meta.pauseAd(token, adId);
+    audit({ agent: (acc && acc.name) || account, adId, action: "manual:pause", executed: true, why: "מהדשבורד" });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+api.post("/manual/budget", async (req, res) => {
+  const { account, adsetId, campaignId, factor } = req.body || {};
+  const f = parseFloat(factor) || 1;
+  try {
+    const acc = accountFromId(account); const token = tokenFor(acc);
+    const tryOn = async (id, level) => {
+      const info = await meta.getBudget(token, id);
+      const cur = parseFloat(info && info.daily_budget || 0);
+      if (cur > 0) {
+        const nb = Math.max(100, Math.round(cur * f));
+        await meta.setDailyBudget(token, id, nb);
+        return { from: cur, to: nb, level };
+      }
+      return null;
+    };
+    let out = null;
+    if (adsetId) out = await tryOn(adsetId, "אד-סט");
+    if (!out && campaignId) out = await tryOn(campaignId, "קמפיין");
+    if (!out) return res.status(400).json({ error: "אין תקציב יומי לעריכה (CBO/lifetime)" });
+    audit({ agent: (acc && acc.name) || account, adId: adsetId || campaignId, action: "manual:budget", executed: true, why: `${out.from}→${out.to}` });
+    res.json(out);
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.use("/api", api);

@@ -123,3 +123,132 @@ export async function computeSummary(range = "7d", { force = false } = {}) {
   cache.set(key, { at: now, data });
   return data;
 }
+
+// ============================================================
+// Full 30-day per-agent series — the shape the main dashboard's
+// overview / agents table / charts expect (same as its old
+// client-side fetch, but computed here so it works on any device).
+// ============================================================
+function isoLocal(d) { const p = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; }
+function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function todayLocal() { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+
+let agentsCache = { at: 0, data: null };
+export async function computeAgentsData({ force = false } = {}) {
+  const now = Date.now();
+  if (!force && agentsCache.data && (now - agentsCache.at) < TTL_MS) return agentsCache.data;
+  const per = [];
+  for (const acc of config.accounts) {
+    try { per.push(await agentSeries(acc)); }
+    catch (e) { per.push({ name: acc.name, account: acc.account, currency: null, activeCampaigns: 0, campaignNames: [], daily: [], dailyBudget: 0, campaigns: null, ads: null, error: e.message }); }
+  }
+  const live = per.filter((a) => !a.error);
+  const currency = (live.find((a) => a.currency) || {}).currency || "ILS";
+  const data = { generatedAt: new Date().toISOString(), currency, agents: per };
+  agentsCache = { at: now, data };
+  return data;
+}
+
+async function agentSeries(acc) {
+  const token = tokenFor(acc);
+  const id = actId(acc.account);
+  const t = todayLocal();
+  const since = isoLocal(addDays(t, -29)), until = isoLocal(t);
+  const [ins, camps, adsets] = await Promise.all([
+    meta.get(token, `${id}/insights`, {
+      fields: "spend,actions,account_currency",
+      time_increment: "1",
+      time_range: JSON.stringify({ since, until }),
+      limit: "500",
+    }),
+    meta.get(token, `${id}/campaigns`, { fields: "id,name,effective_status,daily_budget", effective_status: '["ACTIVE"]', limit: "500" }).catch(() => ({ data: [] })),
+    meta.get(token, `${id}/adsets`, { fields: "campaign_id,daily_budget", effective_status: '["ACTIVE"]', limit: "500" }).catch(() => ({ data: [] })),
+  ]);
+  const map = {}; let currency = "ILS";
+  (ins.data || []).forEach((r) => { currency = r.account_currency || currency; map[r.date_start] = { spend: parseFloat(r.spend || 0), leads: leadFrom(r.actions) }; });
+  const daily = [];
+  for (let d = 29; d >= 0; d--) { const date = isoLocal(addDays(t, -d)); daily.push({ date, spend: (map[date] && map[date].spend) || 0, leads: (map[date] && map[date].leads) || 0 }); }
+  const adBud = {};
+  (adsets.data || []).forEach((s) => { const cid = s.campaign_id; adBud[cid] = (adBud[cid] || 0) + parseFloat(s.daily_budget || 0); });
+  let budMinor = 0;
+  (camps.data || []).forEach((c) => { const cdb = parseFloat(c.daily_budget || 0); budMinor += cdb > 0 ? cdb : (adBud[c.id] || 0); });
+  return {
+    name: acc.name, account: id, currency,
+    activeCampaigns: (camps.data || []).length,
+    campaignNames: (camps.data || []).map((c) => c.name),
+    daily, dailyBudget: budMinor / 100,
+    campaigns: null, ads: null, error: null,
+  };
+}
+
+// ============================================================
+// Ad-level detail for one account — powers the "actions" and
+// "analysis" pages (server-side equivalent of the old client fetch).
+// ============================================================
+const adCache = new Map(); // "account|days" -> { at, data }
+export async function computeAdDetail(account, days = 7, { force = false } = {}) {
+  const id = actId(account);
+  const key = id + "|" + days;
+  const now = Date.now();
+  const hit = adCache.get(key);
+  if (!force && hit && (now - hit.at) < TTL_MS) return hit.data;
+
+  const acc = config.accounts.find((a) => actId(a.account) === id) || { account: id };
+  const token = tokenFor(acc);
+  const t = todayLocal();
+  const since = isoLocal(addDays(t, -(days - 1))), until = isoLocal(t);
+  const ins = await meta.get(token, `${id}/insights`, {
+    level: "ad",
+    fields: "ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,spend,actions,impressions,clicks,reach,frequency,cpm,inline_link_clicks",
+    time_increment: "1",
+    time_range: JSON.stringify({ since, until }),
+    limit: "500",
+  });
+
+  const g = {};
+  (ins.data || []).forEach((r) => {
+    const aid = r.ad_id;
+    if (!g[aid]) g[aid] = { id: aid, adName: r.ad_name, adsetId: r.adset_id, adsetName: r.adset_name, campaignName: r.campaign_name, campaignId: r.campaign_id, status: "ACTIVE", spend: 0, leads: 0, impressions: 0, clicks: 0, linkClicks: 0, reachMax: 0, days: [] };
+    const o = g[aid];
+    const sp = parseFloat(r.spend || 0), ld = leadFrom(r.actions);
+    o.spend += sp; o.leads += ld;
+    o.impressions += parseInt(r.impressions || 0);
+    o.clicks += parseInt(r.clicks || 0);
+    o.linkClicks += parseInt(r.inline_link_clicks || 0);
+    o.reachMax = Math.max(o.reachMax, parseInt(r.reach || 0));
+    o.days.push({ date: r.date_start, spend: sp, leads: ld });
+  });
+  const ads = Object.values(g).map((o) => {
+    const linkC = o.linkClicks || o.clicks;
+    o.days.sort((a, b) => (a.date < b.date ? -1 : 1));
+    const trend = o.days.map((d) => (d.leads > 0 ? d.spend / d.leads : null)).filter((x) => x != null);
+    return {
+      id: o.id, adName: o.adName, adsetId: o.adsetId, adsetName: o.adsetName,
+      campaignName: o.campaignName, campaignId: o.campaignId, status: o.status,
+      spend: o.spend, leads: o.leads, impressions: o.impressions, clicks: linkC, reach: o.reachMax,
+      frequency: o.reachMax > 0 ? o.impressions / o.reachMax : 0,
+      ctr: o.impressions > 0 ? linkC / o.impressions : 0,
+      cpm: o.impressions > 0 ? o.spend / o.impressions * 1000 : 0,
+      cpl: o.leads > 0 ? o.spend / o.leads : null,
+      cplTrend: trend,
+    };
+  });
+  const cmap = {};
+  ads.forEach((a) => {
+    const k = a.campaignId || a.campaignName;
+    if (!cmap[k]) cmap[k] = { id: k, name: a.campaignName, spend: 0, leads: 0, impressions: 0, clicks: 0, reach: 0, adsets: 0, status: "ACTIVE" };
+    const c = cmap[k];
+    c.spend += a.spend; c.leads += a.leads; c.impressions += a.impressions; c.clicks += a.clicks; c.reach += a.reach; c.adsets++;
+  });
+  const campaigns = Object.values(cmap).map((c) => ({
+    ...c,
+    frequency: c.reach > 0 ? c.impressions / c.reach : 1.5,
+    ctr: c.impressions > 0 ? c.clicks / c.impressions : 0,
+    cpm: c.impressions > 0 ? c.spend / c.impressions * 1000 : 0,
+    cpl: c.leads > 0 ? c.spend / c.leads : null,
+    cplTrend: [],
+  }));
+  const data = { ads, campaigns };
+  adCache.set(key, { at: now, data });
+  return data;
+}

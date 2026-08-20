@@ -36,6 +36,11 @@ export const config = {
   apiKey: process.env.API_KEY || "change-me",       // simple shared-secret header
   port: num(process.env.PORT, 3000),
 
+  // --- dashboard login (optional; if set, login is validated by the SERVER
+  //     so the same user/pass works on every device and nothing "resets") ---
+  adminUser: process.env.ADMIN_USER || "",
+  adminPass: process.env.ADMIN_PASS || "",
+
   // --- scheduler ---
   cron: process.env.CRON || "*/30 * * * *",         // every 30 min by default
   windowDays: num(process.env.WINDOW_DAYS, 7),      // look-back window for analysis
