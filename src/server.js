@@ -17,6 +17,7 @@ import { meta, actId } from "./meta.js";
 import { launchCfg, tokenFor, llmReady } from "./config.js";
 import { generateCopy } from "./llm.js";
 import { handleRejections, scanRejections } from "./rejections.js";
+import { computeSummary } from "./summary.js";
 
 // fields the dashboard is allowed to read / change at runtime
 const TUNABLE = [
@@ -217,6 +218,12 @@ api.post("/rejections/scan", async (_req, res) => {
     store.rejections = found;
     res.json(found);
   } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// per-agent snapshot for the mobile page (cached ~2 min)
+api.get("/summary", async (req, res) => {
+  try { res.json(await computeSummary(req.query.range || "7d", { force: req.query.force === "1" })); }
+  catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.use("/api", api);

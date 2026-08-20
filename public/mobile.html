@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0b0e" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>סוכנים · תמונת מצב</title>
+<style>
+  :root{
+    --bg:#0a0b0e; --card:#14161c; --card2:#1a1d25; --line:#242833;
+    --txt:#e8eaf0; --mut:#8b90a0; --accent:#6366f1; --accent2:#818cf8;
+    --good:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Rubik,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 24px)}
+  .wrap{max-width:640px;margin:0 auto;padding:0 14px}
+  header{position:sticky;top:0;z-index:5;background:rgba(10,11,14,.86);
+    backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);
+    padding:calc(env(safe-area-inset-top) + 12px) 0 12px}
+  .hd{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .brand{display:flex;align-items:center;gap:9px}
+  .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center}
+  .logo svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:2}
+  .brand b{font-size:15px;font-weight:700;letter-spacing:-.01em}
+  .brand span{display:block;font-size:11px;color:var(--mut);font-weight:500}
+  .refresh{background:var(--card);border:1px solid var(--line);color:var(--txt);
+    width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+  .refresh svg{width:18px;height:18px;stroke:var(--mut);fill:none;stroke-width:2}
+  .refresh:active{background:var(--card2)}
+  .refresh.spin svg{animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .ranges{display:flex;gap:8px;margin-top:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+  .chip{flex:0 0 auto;padding:8px 15px;border-radius:999px;border:1px solid var(--line);
+    background:var(--card);color:var(--mut);font-size:13px;font-weight:600;white-space:nowrap}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  .meta{display:flex;align-items:center;justify-content:space-between;
+    color:var(--mut);font-size:11.5px;margin:14px 0 8px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--good);display:inline-block;margin-inline-start:6px}
+  .dot.stale{background:var(--warn)}
+
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px}
+  .kpi .l{font-size:11.5px;color:var(--mut);font-weight:600;margin-bottom:5px}
+  .kpi .v{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1;
+    font-variant-numeric:tabular-nums;direction:ltr;text-align:right}
+  .kpi .s{font-size:11px;color:var(--mut);margin-top:5px}
+  .kpi.wide{grid-column:1 / -1}
+  .kpi.accent{background:linear-gradient(135deg,rgba(99,102,241,.16),rgba(99,102,241,.04));border-color:rgba(99,102,241,.35)}
+
+  h2{font-size:13px;color:var(--mut);font-weight:700;margin:22px 4px 10px;text-transform:none}
+  .cards{display:flex;flex-direction:column;gap:10px}
+  .agent{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .agent .top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .agent .nm{display:flex;align-items:center;gap:9px;min-width:0}
+  .av{width:34px;height:34px;border-radius:9px;background:var(--card2);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:var(--accent2);flex:0 0 auto}
+  .nm b{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .badge{flex:0 0 auto;font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;
+    background:rgba(34,197,94,.14);color:var(--good);white-space:nowrap}
+  .badge.off{background:rgba(139,144,160,.14);color:var(--mut)}
+  .badge.err{background:rgba(239,68,68,.14);color:var(--bad)}
+  .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .cell .cl{font-size:10.5px;color:var(--mut);font-weight:600;margin-bottom:3px}
+  .cell .cv{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;direction:ltr;text-align:right;letter-spacing:-.01em}
+  .cell .cv.bad{color:var(--bad)} .cell .cv.good{color:var(--good)}
+  .agent.errrow{border-color:rgba(239,68,68,.3)}
+  .errmsg{font-size:12px;color:var(--bad);direction:ltr;text-align:right;word-break:break-word}
+
+  .total{background:linear-gradient(135deg,#171a22,#12141a);border:1px solid var(--line)}
+  .total .av{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+  .gate{max-width:420px;margin:60px auto;padding:0 20px;text-align:center}
+  .gate .logo{width:52px;height:52px;border-radius:14px;margin:0 auto 18px}
+  .gate .logo svg{width:28px;height:28px}
+  .gate h1{font-size:20px;margin:0 0 8px}
+  .gate p{color:var(--mut);font-size:13px;line-height:1.6;margin:0 0 20px}
+  .gate input{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--line);
+    background:var(--card);color:var(--txt);font-size:15px;text-align:center;direction:ltr}
+  .gate button{width:100%;margin-top:12px;padding:13px;border:0;border-radius:12px;
+    background:var(--accent);color:#fff;font-size:15px;font-weight:700}
+  .gate .err{color:var(--bad);font-size:12.5px;margin-top:12px;min-height:16px}
+
+  .skel{background:linear-gradient(90deg,var(--card) 25%,var(--card2) 50%,var(--card) 75%);
+    background-size:200% 100%;animation:sh 1.3s infinite;border-radius:14px;height:96px}
+  @keyframes sh{to{background-position:-200% 0}}
+  .empty{color:var(--mut);text-align:center;padding:40px 20px;font-size:14px}
+  footer{text-align:center;color:var(--mut);font-size:11px;margin-top:26px;opacity:.7}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+const ICON_LOGO = '<svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>';
+const ICON_REFRESH = '<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>';
+
+const RANGES = [
+  { k:"today", l:"היום" },
+  { k:"7d",    l:"7 ימים" },
+  { k:"30d",   l:"30 יום" },
+];
+
+const state = {
+  key: null,
+  range: "7d",
+  data: null,
+  loading: false,
+  err: "",
+};
+
+// ---- key handling: ?key= wins, else localStorage ----
+function initKey(){
+  const u = new URL(location.href);
+  const qk = u.searchParams.get("key");
+  if (qk){
+    try{ localStorage.setItem("mob_key", qk); }catch(e){}
+    state.key = qk;
+    u.searchParams.delete("key");
+    history.replaceState(null,"",u.pathname + (u.searchParams.toString()?"?"+u.searchParams:"") );
+    return;
+  }
+  try{ state.key = localStorage.getItem("mob_key"); }catch(e){ state.key = null; }
+}
+
+function fmtMoney(n, cur){
+  const c = cur==="ILS"||cur==="NIS"||!cur ? "₪" : (cur==="USD"?"$":cur==="EUR"?"€":cur+" ");
+  const v = Math.round(n||0);
+  return c + v.toLocaleString("en-US");
+}
+function fmtNum(n){ return Math.round(n||0).toLocaleString("en-US"); }
+function fmtCpl(n, cur){ if(!n) return "—"; const c=cur==="ILS"||!cur?"₪":(cur==="USD"?"$":cur+" "); return c+(Math.round(n*10)/10).toLocaleString("en-US"); }
+function initials(name){ const p=(name||"?").trim().split(/\s+/); return (p[0]||"?").slice(0,1)+(p[1]?p[1].slice(0,1):""); }
+function timeStr(iso){ try{ const d=new Date(iso); return d.toLocaleTimeString("he-IL",{hour:"2-digit",minute:"2-digit"}); }catch(e){ return ""; } }
+
+async function load(force){
+  if(!state.key) return render();
+  state.loading = true; state.err=""; render();
+  try{
+    const r = await fetch("/api/summary?range="+encodeURIComponent(state.range)+(force?"&force=1":""), {
+      headers:{ "x-api-key": state.key }
+    });
+    if(r.status===401){ state.err="unauthorized"; state.key=null; try{localStorage.removeItem("mob_key");}catch(e){} state.loading=false; return render(); }
+    if(!r.ok){ throw new Error("HTTP "+r.status); }
+    state.data = await r.json();
+  }catch(e){ state.err = e.message || "load failed"; }
+  state.loading = false; render();
+}
+
+function setRange(k){ if(state.range===k) return; state.range=k; load(); }
+
+// ---------- render ----------
+function render(){
+  const app = document.getElementById("app");
+  if(!state.key){ app.innerHTML = gateHTML(); wireGate(); return; }
+  app.innerHTML = pageHTML();
+  wirePage();
+}
+
+function gateHTML(){
+  return `<div class="gate">
+    <div class="logo">${ICON_LOGO}</div>
+    <h1>תמונת מצב · סוכנים</h1>
+    <p>הדבק את מפתח ה־API של השרת כדי לראות את נתוני הסוכנים בזמן אמת. המפתח נשמר במכשיר בלבד.</p>
+    <input id="k" type="password" placeholder="API key" autocomplete="off" inputmode="text" />
+    <button id="go">כניסה</button>
+    <div class="err">${state.err==="unauthorized"?"מפתח שגוי — נסה שוב":""}</div>
+  </div>`;
+}
+function wireGate(){
+  const inp=document.getElementById("k"), btn=document.getElementById("go");
+  const submit=()=>{ const v=inp.value.trim(); if(!v) return; try{localStorage.setItem("mob_key",v);}catch(e){} state.key=v; state.err=""; load(); };
+  btn.onclick=submit;
+  inp.addEventListener("keydown",e=>{ if(e.key==="Enter") submit(); });
+  inp.focus();
+}
+
+function pageHTML(){
+  const d = state.data;
+  const cur = d ? d.currency : "ILS";
+  const chips = RANGES.map(r=>`<button class="chip ${r.k===state.range?"on":""}" data-r="${r.k}">${r.l}</button>`).join("");
+
+  let body = "";
+  if(state.loading && !d){
+    body = `<div class="kpis">${'<div class="skel" style="height:78px"></div>'.repeat(4)}</div>
+            <h2>סוכנים</h2><div class="cards">${'<div class="skel"></div>'.repeat(4)}</div>`;
+  } else if(state.err && !d){
+    body = `<div class="empty">שגיאה בטעינת הנתונים<br><span style="direction:ltr;font-size:12px">${esc(state.err)}</span></div>`;
+  } else if(d){
+    body = kpisHTML(d) + agentsHTML(d);
+  } else {
+    body = `<div class="empty">אין נתונים עדיין</div>`;
+  }
+
+  const t = d ? d.totals : null;
+  const updated = d ? timeStr(d.generatedAt) : "";
+  const stale = state.err ? "stale" : "";
+
+  return `<header><div class="wrap">
+      <div class="hd">
+        <div class="brand"><div class="logo">${ICON_LOGO}</div>
+          <div><b>תמונת מצב</b><span>${t?`${t.live}/${t.agents} סוכנים פעילים`:"סוכנים"}</span></div>
+        </div>
+        <button class="refresh ${state.loading?"spin":""}" id="rf" aria-label="רענון">${ICON_REFRESH}</button>
+      </div>
+      <div class="ranges">${chips}</div>
+    </div></header>
+    <div class="wrap">
+      <div class="meta">
+        <span><span class="dot ${stale}"></span>${updated?("עודכן "+updated):"טוען…"}</span>
+        <span>${RANGES.find(r=>r.k===state.range)?.l || ""}</span>
+      </div>
+      ${body}
+      <footer>מתעדכן אוטומטית · לצפייה בלבד</footer>
+    </div>`;
+}
+
+function kpisHTML(d){
+  const t = d.totals, cur = d.currency;
+  return `<div class="kpis">
+    <div class="kpi accent"><div class="l">הוצאה כוללת</div><div class="v">${fmtMoney(t.spend,cur)}</div></div>
+    <div class="kpi"><div class="l">לידים</div><div class="v">${fmtNum(t.leads)}</div></div>
+    <div class="kpi"><div class="l">עלות ממוצעת לליד</div><div class="v">${fmtCpl(t.cpl,cur)}</div></div>
+    <div class="kpi"><div class="l">תקציב יומי כולל</div><div class="v">${fmtMoney(t.dailyBudget,cur)}</div></div>
+    <div class="kpi wide"><div class="l">קמפיינים פעילים</div><div class="v">${fmtNum(t.activeCampaigns)}</div><div class="s">מפוזרים על ${t.live} חשבונות</div></div>
+  </div>`;
+}
+
+function agentsHTML(d){
+  const cur = d.currency;
+  const rows = (d.agents||[]).map(a=>{
+    if(a.error){
+      return `<div class="agent errrow">
+        <div class="top"><div class="nm"><div class="av">${esc(initials(a.name))}</div><b>${esc(a.name)}</b></div>
+          <span class="badge err">שגיאה</span></div>
+        <div class="errmsg">${esc(a.error)}</div></div>`;
+    }
+    const active = (a.activeCampaigns||0)>0;
+    const cplCls = a.cpl && d.totals.cpl && a.cpl > d.totals.cpl*1.3 ? "bad" : (a.cpl && d.totals.cpl && a.cpl < d.totals.cpl*0.7 ? "good" : "");
+    return `<div class="agent">
+      <div class="top">
+        <div class="nm"><div class="av">${esc(initials(a.name))}</div><b>${esc(a.name)}</b></div>
+        <span class="badge ${active?"":"off"}">${active?"באוויר":"מושבת"}</span>
+      </div>
+      <div class="grid">
+        <div class="cell"><div class="cl">הוצאה</div><div class="cv">${fmtMoney(a.spend,cur)}</div></div>
+        <div class="cell"><div class="cl">לידים</div><div class="cv">${fmtNum(a.leads)}</div></div>
+        <div class="cell"><div class="cl">עלות/ליד</div><div class="cv ${cplCls}">${fmtCpl(a.cpl,cur)}</div></div>
+        <div class="cell"><div class="cl">קמפיינים</div><div class="cv">${fmtNum(a.activeCampaigns)}</div></div>
+        <div class="cell"><div class="cl">תקציב יומי</div><div class="cv">${fmtMoney(a.dailyBudget,cur)}</div></div>
+        <div class="cell"></div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const t = d.totals;
+  const totalCard = `<div class="agent total">
+    <div class="top"><div class="nm"><div class="av">Σ</div><b>סה״כ</b></div>
+      <span class="badge">${t.live} סוכנים</span></div>
+    <div class="grid">
+      <div class="cell"><div class="cl">הוצאה</div><div class="cv">${fmtMoney(t.spend,d.currency)}</div></div>
+      <div class="cell"><div class="cl">לידים</div><div class="cv">${fmtNum(t.leads)}</div></div>
+      <div class="cell"><div class="cl">עלות/ליד</div><div class="cv">${fmtCpl(t.cpl,d.currency)}</div></div>
+      <div class="cell"><div class="cl">קמפיינים</div><div class="cv">${fmtNum(t.activeCampaigns)}</div></div>
+      <div class="cell"><div class="cl">תקציב יומי</div><div class="cv">${fmtMoney(t.dailyBudget,d.currency)}</div></div>
+      <div class="cell"></div>
+    </div></div>`;
+
+  if(!rows) return `<h2>סוכנים</h2><div class="empty">לא הוגדרו חשבונות בשרת</div>`;
+  return `<h2>סוכנים</h2><div class="cards">${rows}${totalCard}</div>`;
+}
+
+function wirePage(){
+  document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>setRange(c.dataset.r));
+  const rf=document.getElementById("rf"); if(rf) rf.onclick=()=>load(true);
+}
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+// ---- boot ----
+initKey();
+render();
+if(state.key) load();
+// auto-refresh every 60s when visible
+setInterval(()=>{ if(state.key && document.visibilityState==="visible" && !state.loading) load(); }, 60000);
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible" && state.key && state.data) load(); });
+</script>
+</body>
+</html>
